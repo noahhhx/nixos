@@ -1,23 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-HOSTNAME="${2:-fw13}"
+HOSTNAME="${1:-fw13}"
 ROOT_MOUNT="/mnt"
-REPO_PATH="${3:-}"
+REPO_PATH="${2:-.}"
+REPO_PATH="$(readlink -f "$REPO_PATH")"
 
 echo "========================================"
 echo " NixOS Automated Installer"
 echo " Hostname: $HOSTNAME"
 echo " Root: $ROOT_MOUNT"
+echo " Repo: $REPO_PATH"
 echo "========================================"
 
-echo "[2/3] Generating hardware-configuration.nix..."
+echo "[1/2] Generating hardware-configuration.nix..."
 nixos-generate-config \
     --no-filesystems \
-    --root "$ROOT_MOUNT" \
-    --dir "path:$REPO_PATH/$HOSTNAME"
+    --dir "$REPO_PATH/hosts/$HOSTNAME"
 
-
+echo "[2/2] Installing NixOS..."
 nixos-install \
     --flake "path:$REPO_PATH#$HOSTNAME" \
     --no-root-passwd \
