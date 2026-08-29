@@ -15,7 +15,7 @@ echo "[2/3] Generating hardware-configuration.nix..."
 nixos-generate-config \
     --no-filesystems \
     --root "$ROOT_MOUNT" \
-    --dir "../hosts/$HOSTNAME"
+    --dir "$REPO_PATH/$HOSTNAME"
 
 
 nixos-install \
