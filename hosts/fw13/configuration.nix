@@ -6,7 +6,7 @@
     ];
 
     boot.loader.systemd-boot.enable = true;
-    boot.loader.efi.canTouchEfiVariables = true;
+    boot.loader.efi.canTouchEfiVariables = false;
 
     networking.hostName = "fw13";
     networking.networkmanager.enable = true;
