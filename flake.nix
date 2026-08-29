@@ -17,6 +17,10 @@
                     system = "x86_64-linux";
                     homeManagerUser = "fw13";
                 };
+                vm = {
+                    system = "x86_64-linux";
+                    homeManagerUser = "vm";
+                };
             };
         in
         {

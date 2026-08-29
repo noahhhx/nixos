@@ -6,9 +6,9 @@
     ];
 
     boot.loader.systemd-boot.enable = true;
-    boot.loader.efi.canTouchEfiVariables = true;
+    boot.loader.efi.canTouchEfiVariables = false;
 
-    networking.hostName = "fw13";
+    networking.hostName = "vm";
     networking.networkmanager.enable = true;
 
     time.timeZone = "UTC";
@@ -26,9 +26,9 @@
         LC_TIMES = "en_US.UTF-8";
     };
 
-    users.users.fw13 = {
+    users.users.vm = {
         isNormalUser = true;
-        description = "Framework 13";
+        description = "Virtual Machine";
         extraGroups = [ "networkmanager" "wheel" ];
         shell = pkgs.bash;
     };
