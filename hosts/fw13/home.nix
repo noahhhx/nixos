@@ -1,10 +1,10 @@
 { config, pkgs, ... }:
 
 {
-    home.username = "noah";
-    home.homeDirectory = "/home/noah";
+    home.username = "fw13";
+    home.homeDirectory = "/home/fw13";
     programs.git.enable = true;
-    home.stateVersion = "25.05";
+    home.stateVersion = "26.05";
     programs.bash = {
         enable = true;
     };
