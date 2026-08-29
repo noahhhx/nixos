@@ -11,6 +11,7 @@
 
     outputs = { self, nixpkgs, home-manager, ... }:
         let
+            lib = nixpkgs.lib;
             hosts = {
                 fw13 = {
                     system = "x86_64-linux";
@@ -19,7 +20,7 @@
             };
         in
         {
-            nixosConfigurations = builtins.listToAttrs (builtins.mapAttrsToList (name: cfg: {
+            nixosConfigurations = builtins.listToAttrs (lib.mapAttrsToList (name: cfg: {
                 inherit name;
                 value = nixpkgs.lib.nixosSystem {
                     system = cfg.system;

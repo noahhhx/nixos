@@ -31,6 +31,7 @@ Or manually:
 ```bash
 # 1. Partition and mount
 # 2. Clone repo
+nix-shell -p git
 git clone https://github.com/<USER>/<REPO>.git /mnt/etc/nixos
 # 3. Generate hardware config
 nixos-generate-config --no-filesystems --show-hardware-config --root /mnt --dir /mnt/etc/nixos/hosts/fw13
