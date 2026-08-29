@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="${1:-https://github.com/<USER>/<REPO>.git}"
+REPO_URL="${1:-https://github.com/noahhhx/nixos.git}"
 HOSTNAME="${2:-fw13}"
 ROOT_MOUNT="/mnt"
 

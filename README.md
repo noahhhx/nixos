@@ -23,7 +23,7 @@ nixos/
 Boot from a NixOS minimal ISO, then run:
 
 ```bash
-sudo bash scripts/install.sh https://github.com/<USER>/<REPO>.git fw13
+sudo bash <(curl -fsSL https://github.com/noahhhx/nixos/raw/main/scripts/install.sh) https://github.com/noahhhx/nixos.git fw13
 ```
 
 Or manually:
@@ -32,7 +32,7 @@ Or manually:
 # 1. Partition and mount
 # 2. Clone repo
 nix-shell -p git
-git clone https://github.com/<USER>/<REPO>.git /mnt/etc/nixos
+git clone https://github.com/noahhhx/nixos.git /mnt/etc/nixos
 # 3. Generate hardware config
 nixos-generate-config --no-filesystems --show-hardware-config --root /mnt --dir /mnt/etc/nixos/hosts/fw13
 # 4. Install
