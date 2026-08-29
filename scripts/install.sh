@@ -15,7 +15,6 @@ echo "========================================"
 
 echo "[1/2] Generating hardware-configuration.nix..."
 nixos-generate-config \
-    --no-filesystems \
     --dir "$REPO_PATH/hosts/$HOSTNAME"
 
 echo "[2/2] Installing NixOS..."

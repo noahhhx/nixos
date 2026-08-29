@@ -34,7 +34,7 @@ Or manually:
 nix-shell -p git
 git clone https://github.com/noahhhx/nixos.git /mnt/etc/nixos
 # 3. Generate hardware config
-nixos-generate-config --no-filesystems --show-hardware-config --root /mnt --dir /mnt/etc/nixos/hosts/fw13
+nixos-generate-config --root /mnt --dir /mnt/etc/nixos/hosts/fw13
 # 4. Install
 nixos-install --flake /mnt/etc/nixos#fw13 --no-root-passwd
 # 5. Reboot
