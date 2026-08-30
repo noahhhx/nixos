@@ -7,5 +7,6 @@
     networking.hostName = "vm";
     nix.settings.experimental-features = [ "nix-command" "flakes" ];
     time.timeZone = "UTC";
+    system.stateVersion = "26.05";   # don't bump this on existing systems
   };
 }

@@ -1,0 +1,5 @@
+# NOTE: deliberately does NOT ignore flake.lock (pin it — it's part of the
+# config) or hardware/*.nix (an ignored hardware file is how a hollow
+# generated one silently takes its place — Scars, Phase 3).
+result
+result-*

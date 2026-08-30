@@ -9,6 +9,17 @@ host="${1:?usage: bootstrap.sh <vm|framework>}"
 root="/mnt"
 repo="$(cd "$(dirname "$0")" && pwd)"   # repo root, wherever it got cloned
 
+# The minimal installer ISO ships without gdisk (and possibly some mkfs tools).
+# Scar #3: the ceremony died right here with "sgdisk: command not found". The fix
+# is NOT a fourth pasted command in the console (ground rule 2) — the script
+# provisions its own toolbox and re-execs itself with it in PATH.
+if ! command -v sgdisk >/dev/null || ! command -v mkfs.fat >/dev/null || ! command -v mkfs.ext4 >/dev/null; then
+  nix_bin="$(command -v nix || echo /run/current-system/sw/bin/nix)"
+  exec "$nix_bin" shell nixpkgs#gdisk nixpkgs#dosfstools nixpkgs#e2fsprogs \
+    --option experimental-features "nix-command flakes" \
+    -c "$repo/bootstrap.sh" "$@"
+fi
+
 case "$host" in
   vm)
     # vm-curator attaches the disk over virtio, which Linux names /dev/vda.
@@ -71,4 +82,6 @@ nixos-install \
   --no-root-passwd   # safe ONLY because users.nix sets initialPassword — verify it
 
 echo "Done. Power off, detach the ISO, boot."
-echo "First login: TTY, your user + initialPassword. Then ssh in and never look back."
+echo "First boot is a bare TTY (no display manager yet): log in with your user +"
+echo "initialPassword, then run: uwsm start hyprland-uwsm.desktop"
+echo "Then ssh in and never look back."

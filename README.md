@@ -1,13 +1,59 @@
-# NixOS Configuration
+# nixos
 
-NixOS install from a git repo using flakes and home-manager.
-
-## Structure
+My NixOS + home-manager config, structured [dendritically](https://github.com/mightyiam/dendritic):
+every Nix file under `modules/` is a top-level module, a file's path names a
+feature, and a feature spans **all** configuration classes (NixOS *and*
+home-manager) that it applies to. `flake.nix` is just inputs; everything else
+lives in the tree.
 
 ```
-nixos/
-├── flake.nix                    # Flake entry point
-└── .gitignore
+├── flake.nix             # entry point: inputs + auto-import of ./modules
+├── flake.lock            # pinned inputs — commit this
+├── bootstrap.sh          # fresh-install driver: partition, mount, nixos-install
+├── hardware/             # hand-written, committed, deterministic — the script
+│   ├── vm.nix            #   partitions to match these files
+│   └── framework.nix
+└── modules/              # every file here is a top-level module
+    ├── nixos.nix             # machinery: options nixos.modules / nixos.configurations
+    ├── home-manager.nix      # machinery: options homeManager.modules + wiring
+    ├── users.nix             # noah: account + attaching home bags to him
+    ├── ssh.nix               # lab VM access
+    ├── networking.nix        # NetworkManager, firewall
+    ├── tools.nix             # baseline CLI tools
+    ├── hyprland.nix          # ONE feature: NixOS parts + home-manager parts
+    ├── audio.nix             # PipeWire
+    ├── fonts.nix
+    ├── shell/                # bash + starship (real starship.toml nested here)
+    ├── terminal/ghostty.nix
+    └── computers/            # assembly points: pick bags + machine-specific bits
+        ├── vm.nix
+        └── framework.nix
 ```
 
-## Automated Install
+Bags (merge-point names): `base` = every machine, `workstation` = GUI machines.
+A feature file's presence *is* its enabling — no `enable` flags, no `mkEnableOption`.
+
+## Machines
+
+| Name | What |
+|---|---|
+| `vm` | disposable lab VM — Hyprland, ssh (`noah` / `changeme` on first boot) |
+| `framework` | Framework 13 (Ryzen AI 9 HX 370 / Radeon 890M) |
+
+## Install (fresh box, from the installer ISO console — the whole ceremony)
+
+```bash
+nix shell nixpkgs#git
+git clone https://github.com/noahhhx/nixos && cd nixos
+sudo ./bootstrap.sh <vm|framework>
+```
+
+## The loop
+
+```
+host: edit modules/...  →  nix flake check && git push
+vm:   git pull && sudo nixos-rebuild switch --flake .#vm
+```
+
+Debug: `nix repl`, `:lf .`, walk `nixosConfigurations.vm.config...` with TAB.
+First boot is a bare TTY: log in, then `uwsm start hyprland-uwsm.desktop`.
