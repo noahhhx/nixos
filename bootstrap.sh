@@ -11,10 +11,10 @@ repo="$(cd "$(dirname "$0")" && pwd)"   # repo root, wherever it got cloned
 
 case "$host" in
   vm)
-    # vm-curator attaches disks over SATA/AHCI, which Linux names /dev/sda.
-    # If you ever switch to a virtio bus, this becomes /dev/vda — and hardware/vm.nix
-    # must change with it. Verify any fresh VM with `lsblk` before running.
-    disk=/dev/sda
+    # vm-curator attaches the disk over virtio, which Linux names /dev/vda.
+    # Ground truth: ~/vm-space/<vm>/launch.sh — read its -drive line. A SATA bus
+    # would name it /dev/sda; whatever the bus, hardware/vm.nix must agree.
+    disk=/dev/vda
     [ -b "$disk" ] || { echo "$disk not found — run lsblk, fix the script on the host, push, re-clone."; exit 1; }
     if findmnt "$root" >/dev/null; then
       echo "$root is already mounted — fresh installs only."; exit 1

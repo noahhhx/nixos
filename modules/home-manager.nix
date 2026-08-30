@@ -13,4 +13,8 @@
       backupFileExtension = "hm-backup";  # unmanaged files get renamed, not clobbered
     };
   };
+
+  # same trick for the home bags — empty until feature files fill them:
+  config.homeManager.modules.base = {};
+  config.homeManager.modules.workstation = {};
 }

@@ -17,4 +17,10 @@
         modules = [ machine ];
       })
       config.nixos.configurations;
+
+  # canonical bag, defined empty so machines can import it before any feature file
+  # fills it — Phase 5 feature files MERGE into it (deferredModule value merging).
+  # Without this, `with config.nixos.modules; [ ... workstation ]` dies with
+  # "undefined variable" until the first workstation feature exists.
+  config.nixos.modules.workstation = {};
 }
