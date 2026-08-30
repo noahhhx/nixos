@@ -1,46 +1,15 @@
 {
-    description = "beep boop computer start";
-
     inputs = {
-        nixpkgs.url = "nixpkgs/nixos-26.05";
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+        flake-parts.url = "github:hercules-ci/flake-parts";
         home-manager = {
-            url = "github:nix-community/home-manager/release-26.05";
+            url = "github:nix-community/home-manager";
             inputs.nixpkgs.follows = "nixpkgs";
         };
+        import-tree.url = "github:denful/import-tree";
     };
 
-    outputs = { self, nixpkgs, home-manager, ... }:
-        let
-            lib = nixpkgs.lib;
-            hosts = {
-                fw13 = {
-                    system = "x86_64-linux";
-                    homeManagerUser = "fw13";
-                };
-                vm = {
-                    system = "x86_64-linux";
-                    homeManagerUser = "vm";
-                };
-            };
-        in
-        {
-            nixosConfigurations = builtins.listToAttrs (lib.mapAttrsToList (name: cfg: {
-                inherit name;
-                value = nixpkgs.lib.nixosSystem {
-                    system = cfg.system;
-                    modules = [
-                        ./hosts/${name}/configuration.nix
-                        home-manager.nixosModules.home-manager
-                        {
-                            home-manager = {
-                                useGlobalPkgs = true;
-                                useUserPackages = true;
-                                users.${cfg.homeManagerUser} = import ./hosts/${name}/home.nix;
-                                backupFileExtension = "backup";
-                            };
-                        }
-                    ];
-                };
-            }) hosts);
-        };
+    outputs = inputs:
+        inputs.flake-parts.lib.mkFlake { inherit inputs; }
+            (inputs.import-tree ./modules);
 }
