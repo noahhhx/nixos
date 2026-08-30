@@ -13,9 +13,12 @@ repo="$(cd "$(dirname "$0")" && pwd)"   # repo root, wherever it got cloned
 # Scar #3: the ceremony died right here with "sgdisk: command not found". The fix
 # is NOT a fourth pasted command in the console (ground rule 2) — the script
 # provisions its own toolbox and re-execs itself with it in PATH.
+# NOTE: the package is gptfdisk (it ships the sgdisk binary) — "gdisk" was
+# renamed in nixpkgs; using the old attr name fails with "does not provide
+# attribute packages.x86_64-linux.gdisk" (Scar #4).
 if ! command -v sgdisk >/dev/null || ! command -v mkfs.fat >/dev/null || ! command -v mkfs.ext4 >/dev/null; then
   nix_bin="$(command -v nix || echo /run/current-system/sw/bin/nix)"
-  exec "$nix_bin" shell nixpkgs#gdisk nixpkgs#dosfstools nixpkgs#e2fsprogs \
+  exec "$nix_bin" shell nixpkgs#gptfdisk nixpkgs#dosfstools nixpkgs#e2fsprogs \
     --option experimental-features "nix-command flakes" \
     -c "$repo/bootstrap.sh" "$@"
 fi
