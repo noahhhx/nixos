@@ -5,7 +5,7 @@
       enable = true;
       settings = {
         font-size = 11;
-        theme = "catppuccin-mocha";
+        # theme = "catppuccin-mocha";
         window-padding-x = 8;
         window-padding-y = 8;
       };
