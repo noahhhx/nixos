@@ -26,9 +26,6 @@
           "SUPER, mouse:273, resizewindow"
         ];
       };
-      extraConfig = ''
-        # escape hatch for settings the module doesn't model yet
-      '';
     };
   };
 }
