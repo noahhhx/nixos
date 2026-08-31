@@ -9,10 +9,10 @@ lives in the tree.
 ```
 ├── flake.nix             # entry point: inputs + auto-import of ./modules
 ├── flake.lock            # pinned inputs — commit this
-├── bootstrap.sh          # fresh-install driver: partition, mount, nixos-install
-├── hardware/             # hand-written, committed, deterministic — the script
-│   ├── vm.nix            #   partitions to match these files
-│   └── framework.nix
+├── bootstrap.sh          # post-install driver: verify hardware, switch to our flake
+├── hardware/             # hand-written, committed, deterministic — describes the
+│   ├── vm.nix            #   layout the ISO install must produce; the script
+│   └── framework.nix     #   verifies reality matches before switching
 └── modules/              # every file here is a top-level module
     ├── nixos.nix             # machinery: options nixos.modules / nixos.configurations
     ├── home-manager.nix      # machinery: options homeManager.modules + wiring
@@ -40,13 +40,20 @@ A feature file's presence *is* its enabling — no `enable` flags, no `mkEnableO
 | `vm` | disposable lab VM — Hyprland, ssh (`noah` / `changeme` on first boot) |
 | `framework` | Framework 13 (Ryzen AI 9 HX 370 / Radeon 890M) |
 
-## Install (fresh box, from the installer ISO console — the whole ceremony)
+## Install (ISO install first, script second)
+
+1. Install NixOS from the installer ISO (graphical installer or the console
+   ceremony — either is fine). Plain layout: one ESP + one root, no LUKS, so
+   the install matches the committed `hardware/*.nix` files.
+2. Boot into the installed system, then:
 
 ```bash
-nix shell nixpkgs#git
+nix-shell -p git
 git clone https://github.com/noahhhx/nixos && cd nixos
 sudo ./bootstrap.sh <vm|framework>
 ```
+
+3. Reboot.
 
 ## The loop
 
