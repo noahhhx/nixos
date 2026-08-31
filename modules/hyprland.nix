@@ -17,9 +17,9 @@
       settings = {
         monitor = [ ",preferred,auto,1" ];
         bind = [
-          "SUPER, Q, exec, ghostty"    # the terminal feature provides ghostty
-          "SUPER, F, fullscreen, 0"
-          "SUPER, M, exit"
+          "SUPER + Q, exec, ghostty"    # the terminal feature provides ghostty
+          "SUPER + F, fullscreen, 0"
+          "SUPER + M, exit"
         ];
         bindm = [
           "SUPER, mouse:272, movewindow"
