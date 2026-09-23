@@ -74,6 +74,19 @@ in
                     machine.wait_for_unit("home-manager-noah.service")
                     machine.succeed("test -x /etc/profiles/per-user/noah/bin/kitty")
                     machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
+
+                    # Sleep stack: the kernel exposes suspend (mem) and
+                    # hibernate (disk) sleep states, and systemd's sleep
+                    # units are present. Exercising a full S3/S4 cycle is not
+                    # faithful under QEMU (the test plumbing replaces the
+                    # host's real swap/LUKS layout), so the actual resume path
+                    # is verified on the metal host instead.
+                    machine.succeed("grep -q mem /sys/power/state")
+                    machine.succeed("grep -q disk /sys/power/state")
+                    machine.succeed(
+                      "systemctl cat systemd-suspend.service"
+                      + " systemd-hibernate.service >/dev/null"
+                    )
                   '';
               }
             )

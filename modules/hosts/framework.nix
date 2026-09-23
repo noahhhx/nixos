@@ -81,5 +81,26 @@ in
         ];
       };
     };
+
+    # Hibernate: carry over the previous install's 62G nocow btrfs swapfile
+    # at /swap/swapfile (inside subvol @) — the only hibernation-capable swap
+    # on this machine, since zram can't hold an image. Priority 0 keeps zram
+    # (100) as the paging swap. No resume=/resume_offset kernel params are
+    # needed: the kernel detects the hibernation image on the swapfile at
+    # swapon time and resumes from it (exactly how the current install works —
+    # the journal shows successful hibernate/resume cycles). Suspend needs
+    # nothing; this platform sleeps via s2idle by default. On a fresh
+    # reinstall recreate the swapfile before switching:
+    #   install -d /swap
+    #   touch /swap/swapfile && chattr +C /swap/swapfile
+    #   dd if=/dev/zero of=/swap/swapfile bs=1M count=63488
+    #   chmod 600 /swap/swapfile
+    # (dd rather than fallocate: fallocate extents aren't reliably nocow).
+    swapDevices = [
+      {
+        device = "/swap/swapfile";
+        priority = 0;
+      }
+    ];
   };
 }
