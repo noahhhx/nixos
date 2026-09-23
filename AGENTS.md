@@ -8,7 +8,23 @@ This repository is a Nix configuration using the [Dendritic pattern](https://git
 - Every other `.nix` file is a flake-parts module (a top-level module). A file is never "a NixOS module" or "a home-manager module" — it is always a top-level module that may *contribute* lower-level modules.
 - Files under `modules/` are auto-imported by `import-tree`. Any path containing `/_` is ignored (the convention for disabling a module).
 - Lower-level modules are stored via `flake.modules.<class>.<aspect>` (deferredModule merge semantics), where `<class>` is `nixos`, `homeManager`, `darwin`, etc. Multiple files may contribute to the same aspect name and merge.
-- Hosts are declared inside top-level modules by composing aspects, e.g. `flake.nixosConfigurations.<host> = inputs.nixpkgs.lib.nixosSystem { modules = with config.flake.modules.nixos; [ ssh docker ]; }`.
+- Hosts are declared inside top-level modules by composing aspects. The `hosts` option (declared in `modules/hosts.nix`) is the registry; each machine adds an entry from its own file under `modules/hosts/`, e.g. `hosts.myhost = { imports = [ config.flake.modules.nixos.desktop ]; ... };`.
+
+## Layout
+
+`modules/` is grouped by *domain* (never by configuration class — no `nixos/` vs `homeManager/` split):
+
+```
+modules/
+  systems.nix  hosts.nix  verification.nix   # flake plumbing: platforms, host registry, checks
+  core/        # base, user, fonts, home, home-manager — aspects every host builds on
+  desktop/     # the graphical session: default.nix (the "desktop" bundle aspect) + hyprland, walker, waybar, kitty
+  apps/        # standalone applications: git, zed, librewolf, dolphin
+  hardware/    # hardware enablement: framework, audio
+  hosts/       # one file per machine: composes aspects into hosts.<name>
+```
+
+Bundle aspects (like `desktop`) compose other aspects so hosts stay short; a host imports `[ desktop audio framework ]` rather than a dozen sub-aspects.
 
 ## Rules
 
@@ -104,4 +120,4 @@ When `nix` is not on PATH, the runner creates a persistent privileged container 
 2. Before finishing: run `./scripts/verify.sh all`. At minimum `eval` + `build`; always include `vm` for changes affecting boot, filesystems, or enabled services.
 3. If the `fmt` tier fails: `./scripts/verify.sh --fix fmt`, re-run verification.
 4. When adding features that should be asserted at boot, extend the test script in `modules/verification.nix` (e.g. `machine.wait_for_unit("<service>.service")`).
-5. New hosts: add an entry to the `hosts` option in `modules/hosts.nix` — it automatically gains `toplevel-*` and `vm-test-*` checks and a `vm-<host>` package.
+5. New hosts: add a `modules/hosts/<name>.nix` file setting `hosts.<name>` — it automatically gains `toplevel-*` and `vm-test-*` checks and a `vm-<host>` package.

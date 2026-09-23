@@ -1,5 +1,5 @@
 # The "base" aspect: minimal, hardware-agnostic defaults shared by every
-# host that imports it. Hosts opt into further aspects (see hosts.nix).
+# host that imports it. Hosts opt into further aspects (see modules/hosts/).
 {
   flake.modules.nixos.base = {
     nix.settings.experimental-features = [

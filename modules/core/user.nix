@@ -1,5 +1,5 @@
 # The "user" aspect: the primary interactive user account.
-# Keep the username in sync with the home-manager composition in hosts.nix.
+# Keep the username in sync with the home-manager composition in modules/hosts/.
 { ... }:
 {
   flake.modules.nixos.user = {
