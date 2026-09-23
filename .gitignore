@@ -1,0 +1,11 @@
+# build artifacts
+/result
+/result-*
+
+# direnv
+/.direnv
+.direnv
+
+# VM artifacts produced by `nix run .#vm-<host>`
+*.qcow2
+nix-vm.*
