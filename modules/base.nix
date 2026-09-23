@@ -6,5 +6,9 @@
       "nix-command"
       "flakes"
     ];
+
+    # Host-agnostic location settings (default locale/keymap are already
+    # en_US.UTF-8 / us).
+    time.timeZone = "Europe/London";
   };
 }
