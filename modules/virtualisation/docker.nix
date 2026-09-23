@@ -1,4 +1,4 @@
-# The "docker" aspect: the Docker daemon and CLI. The primary user is in
+# The "docker" aspect: the Docker daemon and CLI. Every normal user is in
 # the "docker" group for passwordless access — note that this is
 # root-equivalent (docker.sock grants host root), the standard trade-off
 # for a single-user dev machine. For stricter isolation switch to
@@ -6,7 +6,12 @@
 { ... }:
 {
   flake.modules.nixos.docker =
-    { pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     {
       virtualisation.docker.enable = true;
 
@@ -15,7 +20,12 @@
       # profile's libexec/docker/cli-plugins).
       environment.systemPackages = [ pkgs.docker-compose ];
 
-      # Keep the username in sync with modules/core/user.nix.
-      users.users.noah.extraGroups = [ "docker" ];
+      # Docker group membership for whichever normal user(s) the host
+      # defines (no username hardcoding — see modules/core/user.nix);
+      # via group members rather than users.users.<name>.extraGroups so
+      # the group can be filled without redefining the user set it reads.
+      users.groups.docker.members = lib.filter (u: config.users.users.${u}.isNormalUser or false) (
+        lib.attrNames config.users.users
+      );
     };
 }

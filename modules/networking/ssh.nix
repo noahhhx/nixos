@@ -4,13 +4,16 @@
 #
 # Tailscale MagicDNS names (*.ts.net) default to the local username, so
 # `ssh somehost.ts.net` just works for tailnet machines with the same user.
-# Keep the username in sync with modules/core/user.nix.
+# The username is read from home-manager itself — no sync needed with
+# modules/core/user.nix.
 { ... }:
 {
-  flake.modules.homeManager.ssh = {
-    programs.ssh = {
-      enable = true;
-      settings."*.ts.net".user = "noah";
+  flake.modules.homeManager.ssh =
+    { config, ... }:
+    {
+      programs.ssh = {
+        enable = true;
+        settings."*.ts.net".user = config.home.username;
+      };
     };
-  };
 }

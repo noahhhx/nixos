@@ -66,6 +66,13 @@ in
                 testScript =
                   let
                     hostConfig = nixosConfigurations.${name}.config;
+                    # The primary interactive user (each host defines
+                    # exactly one); the profile paths below depend on it.
+                    primaryUser = lib.head (
+                      lib.filter (u: hostConfig.users.users.${u}.isNormalUser or false) (
+                        lib.attrNames hostConfig.users.users
+                      )
+                    );
                     hasTailscale = hostConfig.services.tailscale.enable;
                     hasMullvad = hostConfig.services.mullvad-vpn.enable;
                     hasDocker = hostConfig.virtualisation.docker.enable;
@@ -81,34 +88,34 @@ in
                     # Desktop stack: greeter is up, home-manager activated the
                     # user profile, and the compositor is installed.
                     machine.wait_for_unit("greetd.service")
-                    machine.wait_for_unit("home-manager-noah.service")
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/kitty")
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/pi")
+                    machine.wait_for_unit("home-manager-${primaryUser}.service")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/kitty")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/pi")
 
                     # Dev tooling (devenv aspect, part of the desktop bundle):
                     # the CLI and direnv are on the user's PATH.
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/devenv")
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/direnv")
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/hyprlock")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/devenv")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/direnv")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprlock")
                     machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
 
                     # Hypr ecosystem session services (installed by
                     # home-manager activation as user units; they only run
                     # once a Wayland session exists, which the VM test
                     # does not start, so assert on the units instead).
-                    machine.succeed("test -f /home/noah/.config/systemd/user/hypridle.service")
-                    machine.succeed("test -f /home/noah/.config/systemd/user/hyprpaper.service")
-                    machine.succeed("test -f /home/noah/.config/hypr/hyprlock.conf")
+                    machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hypridle.service")
+                    machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpaper.service")
+                    machine.succeed("test -f /home/${primaryUser}/.config/hypr/hyprlock.conf")
                     machine.succeed("test -f /etc/pam.d/hyprlock") # hyprlock can authenticate
 
                     # Notification daemon (mako aspect): config installed; the
                     # daemon itself is D-Bus-activated on the first
                     # notification of a real session.
-                    machine.succeed("test -f /home/noah/.config/mako/config")
+                    machine.succeed("test -f /home/${primaryUser}/.config/mako/config")
 
                     # polkit agent (hyprpolkitagent aspect): user unit wired to
                     # the graphical session so privileged GUI prompts work.
-                    machine.succeed("test -f /home/noah/.config/systemd/user/hyprpolkitagent.service")
+                    machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpolkitagent.service")
 
                     # Portal stack: hyprland's own portal is registered
                     # (its daemon binary lives in libexec, not on PATH) and
@@ -121,10 +128,10 @@ in
 
                     # Screenshot tool (hyprshot aspect) and userland helpers
                     # (fastfetch; nano/nvim from the editors aspect).
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/hyprshot")
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/fastfetch")
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/nano")
-                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/nvim")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprshot")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/fastfetch")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nano")
+                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nvim")
 
                     # Default editor (editors aspect): Zed's CLI, with --wait
                     # so $EDITOR blocks until the buffer is closed.
@@ -136,9 +143,9 @@ in
 
                     # Default browser association (librewolf aspect):
                     # xdg-open sends http(s) links to LibreWolf.
-                    machine.succeed("test -f /home/noah/.config/mimeapps.list")
+                    machine.succeed("test -f /home/${primaryUser}/.config/mimeapps.list")
                     machine.succeed(
-                      "grep -q librewolf.desktop /home/noah/.config/mimeapps.list"
+                      "grep -q librewolf.desktop /home/${primaryUser}/.config/mimeapps.list"
                     )
 
                     # File-manager integration (dolphin aspect): gvfs provides
