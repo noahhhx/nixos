@@ -216,7 +216,11 @@ tier_vm() {
       else
         # NixOS tests declare requiredSystemFeatures = [ "kvm" ]; make sure
         # this machine is allowed to build them (TCG fallback if no /dev/kvm).
-        NIX_CONFIG="system-features = kvm nixos-test big-parallel" \
+        # Append to any inherited NIX_CONFIG (e.g. experimental-features set
+        # by the caller) instead of clobbering it — NIX_CONFIG is
+        # newline-separated.
+        NIX_CONFIG="${NIX_CONFIG:+${NIX_CONFIG}
+}system-features = kvm nixos-test big-parallel" \
           nix build --no-link --print-out-paths ".#checks.$s.vm-test-$h"
       fi
       pass "vm-test: host '$h' boots and reaches multi-user.target"
