@@ -13,6 +13,7 @@ in
       nixos.framework
       nixos.tailscale
       nixos.mullvad
+      nixos.docker
     ];
 
     home-manager.users.noah = {

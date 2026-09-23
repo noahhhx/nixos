@@ -16,6 +16,7 @@ in
       hyprland
       hyprlock
       user
+      devenv
     ];
   };
 
@@ -35,6 +36,7 @@ in
       git
       zed
       pi
+      devenv
       librewolf
       dolphin
     ];

@@ -68,6 +68,7 @@ in
                     hostConfig = nixosConfigurations.${name}.config;
                     hasTailscale = hostConfig.services.tailscale.enable;
                     hasMullvad = hostConfig.services.mullvad-vpn.enable;
+                    hasDocker = hostConfig.virtualisation.docker.enable;
                   in
                   # python
                   ''
@@ -82,6 +83,11 @@ in
                     machine.wait_for_unit("home-manager-noah.service")
                     machine.succeed("test -x /etc/profiles/per-user/noah/bin/kitty")
                     machine.succeed("test -x /etc/profiles/per-user/noah/bin/pi")
+
+                    # Dev tooling (devenv aspect, part of the desktop bundle):
+                    # the CLI and direnv are on the user's PATH.
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/devenv")
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/direnv")
                     machine.succeed("test -x /etc/profiles/per-user/noah/bin/hyprlock")
                     machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
 
@@ -121,6 +127,18 @@ in
                       if hasMullvad then
                         ''
                           machine.wait_for_unit("mullvad-daemon.service")
+                        ''
+                      else
+                        ""
+                    }
+
+                    # Containers (docker aspect): the daemon is up and the
+                    # CLI can talk to it.
+                    ${
+                      if hasDocker then
+                        ''
+                          machine.wait_for_unit("docker.service")
+                          machine.succeed("docker info >/dev/null")
                         ''
                       else
                         ""
