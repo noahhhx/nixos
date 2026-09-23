@@ -22,8 +22,25 @@
         };
       };
 
-      # File chooser / open-with portals for Wayland + GTK apps.
-      xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+      # Portals. Hyprland's own portal (xdg-desktop-portal-hyprland:
+      # screencast, screenshot, global-shortcuts) is already pulled in by
+      # programs.hyprland above; xdg-desktop-portal-gtk covers the rest
+      # (file chooser, open-with) for Wayland + GTK apps. Make the
+      # per-interface order explicit with gtk as fallback for everything
+      # hyprland does not implement.
+      xdg.portal = {
+        extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+        config.common.default = [
+          "hyprland"
+          "gtk"
+        ];
+      };
+
+      # Laptop media keys: brightnessctl, used by the XF86MonBrightness
+      # binds below. Its udev rule lets the `video` group (see the "user"
+      # aspect) write to the backlight devices.
+      environment.systemPackages = [ pkgs.brightnessctl ];
+      services.udev.packages = [ pkgs.brightnessctl ];
     };
 
   flake.modules.homeManager.hyprland = {
@@ -69,6 +86,19 @@
       hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
       hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit")) -- dwindle only
       hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
+      -- Lock the session: logind lock signal -> hypridle's lock_cmd -> hyprlock
+      hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
+
+      -- Laptop media keys (no modifier needed): volume via wpctl (the
+      -- WirePlumber CLI, on PATH through the pipewire "audio" aspect),
+      -- brightness via brightnessctl (NixOS side above). `locked` keeps
+      -- them working under hyprlock; `repeating` auto-repeats when held.
+      hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+      hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true })
+      hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, repeating = true })
+      hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, repeating = true })
+      hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl set +5%"), { locked = true, repeating = true })
+      hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"), { locked = true, repeating = true })
 
       -- Move focus with mainMod + arrow keys
       hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))

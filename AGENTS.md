@@ -18,7 +18,7 @@ This repository is a Nix configuration using the [Dendritic pattern](https://git
 modules/
   systems.nix  hosts.nix  verification.nix   # flake plumbing: platforms, host registry, checks
   core/        # base, user, fonts, home, home-manager — aspects every host builds on
-  desktop/     # the graphical session: default.nix (the "desktop" bundle aspect) + hyprland, walker, waybar, kitty
+  desktop/     # the graphical session: default.nix (the "desktop" bundle aspect) + hyprland, hypridle, hyprlock, hyprpaper, walker, waybar, kitty
   apps/        # standalone applications: git, zed, librewolf, dolphin
   hardware/    # hardware enablement: framework, audio
   hosts/       # one file per machine: composes aspects into hosts.<name>

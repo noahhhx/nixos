@@ -82,7 +82,26 @@ in
                     machine.wait_for_unit("home-manager-noah.service")
                     machine.succeed("test -x /etc/profiles/per-user/noah/bin/kitty")
                     machine.succeed("test -x /etc/profiles/per-user/noah/bin/pi")
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/hyprlock")
                     machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
+
+                    # Hypr ecosystem session services (installed by
+                    # home-manager activation as user units; they only run
+                    # once a Wayland session exists, which the VM test
+                    # does not start, so assert on the units instead).
+                    machine.succeed("test -f /home/noah/.config/systemd/user/hypridle.service")
+                    machine.succeed("test -f /home/noah/.config/systemd/user/hyprpaper.service")
+                    machine.succeed("test -f /home/noah/.config/hypr/hyprlock.conf")
+                    machine.succeed("test -f /etc/pam.d/hyprlock") # hyprlock can authenticate
+
+                    # Portal stack: hyprland's own portal is registered
+                    # (its daemon binary lives in libexec, not on PATH) and
+                    # preferred over the gtk fallback in portals.conf, plus
+                    # the media-key helper on PATH.
+                    machine.succeed("test -f /run/current-system/sw/share/xdg-desktop-portal/portals/hyprland.portal")
+                    machine.succeed("grep -q hyprland /etc/xdg/xdg-desktop-portal/portals.conf")
+                    machine.succeed("grep -q gtk /etc/xdg/xdg-desktop-portal/portals.conf")
+                    machine.succeed("test -x /run/current-system/sw/bin/brightnessctl")
 
                     # VPN daemons. Mullvad starts unconnected (picking a relay
                     # is a manual step on the real machine). Tailscale is down

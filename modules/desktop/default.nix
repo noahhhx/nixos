@@ -14,6 +14,7 @@ in
       fonts
       home-manager
       hyprland
+      hyprlock
       user
     ];
   };
@@ -25,6 +26,9 @@ in
     imports = with homeManager; [
       home
       hyprland
+      hypridle
+      hyprlock
+      hyprpaper
       walker
       waybar
       kitty
