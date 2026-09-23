@@ -11,6 +11,8 @@ in
       nixos.desktop
       nixos.audio
       nixos.framework
+      nixos.tailscale
+      nixos.mullvad
     ];
 
     home-manager.users.noah = {

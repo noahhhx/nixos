@@ -61,7 +61,15 @@ in
                 };
                 # Extend with feature-specific assertions as the config grows
                 # (e.g. machine.wait_for_unit("<new-service>.service")).
-                testScript = # python
+                # Hosts opt into only some aspects, so assertions for optional
+                # services are guarded by what the host's config enables.
+                testScript =
+                  let
+                    hostConfig = nixosConfigurations.${name}.config;
+                    hasTailscale = hostConfig.services.tailscale.enable;
+                    hasMullvad = hostConfig.services.mullvad-vpn.enable;
+                  in
+                  # python
                   ''
                     start_all()
                     machine.wait_for_unit("multi-user.target")
@@ -73,7 +81,31 @@ in
                     machine.wait_for_unit("greetd.service")
                     machine.wait_for_unit("home-manager-noah.service")
                     machine.succeed("test -x /etc/profiles/per-user/noah/bin/kitty")
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/pi")
                     machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
+
+                    # VPN daemons. Mullvad starts unconnected (picking a relay
+                    # is a manual step on the real machine). Tailscale is down
+                    # by default: assert it stays down at boot and that the
+                    # user's switch (systemctl start) brings it up.
+                    ${
+                      if hasTailscale then
+                        ''
+                          machine.fail("systemctl is-active tailscaled.service")
+                          machine.succeed("systemctl start tailscaled.service")
+                          machine.wait_for_unit("tailscaled.service")
+                        ''
+                      else
+                        ""
+                    }
+                    ${
+                      if hasMullvad then
+                        ''
+                          machine.wait_for_unit("mullvad-daemon.service")
+                        ''
+                      else
+                        ""
+                    }
 
                     # Sleep stack: the kernel exposes suspend (mem) and
                     # hibernate (disk) sleep states, and systemd's sleep

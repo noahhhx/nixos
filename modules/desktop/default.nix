@@ -30,6 +30,7 @@ in
       kitty
       git
       zed
+      pi
       librewolf
       dolphin
     ];
