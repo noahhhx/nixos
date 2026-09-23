@@ -17,6 +17,7 @@ in
       hyprlock
       user
       devenv
+      intellij
     ];
   };
 
@@ -35,10 +36,12 @@ in
       kitty
       git
       zed
+      intellij
       pi
       devenv
       librewolf
       dolphin
+      moonlight
     ];
   };
 }
