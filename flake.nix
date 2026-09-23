@@ -18,6 +18,11 @@
 
     # WiFi/VPN TUI for NetworkManager; not yet in nixpkgs (nixpkgs only has
     # wlrctl, a different tool), so it comes from the upstream flake.
+    # Board-specific hardware enablement (community-maintained): EC access
+    # via framework-laptop-kmod, audio profiles, power management, panel
+    # self-refresh workaround — see modules/hardware/framework.nix.
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
+
     wlctl = {
       url = "github:aashish-thapa/wlctl";
       inputs.nixpkgs.follows = "nixpkgs";

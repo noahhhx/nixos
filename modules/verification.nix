@@ -69,6 +69,7 @@ in
                     hasTailscale = hostConfig.services.tailscale.enable;
                     hasMullvad = hostConfig.services.mullvad-vpn.enable;
                     hasDocker = hostConfig.virtualisation.docker.enable;
+                    hasPPD = hostConfig.services.power-profiles-daemon.enable;
                   in
                   # python
                   ''
@@ -100,6 +101,15 @@ in
                     machine.succeed("test -f /home/noah/.config/hypr/hyprlock.conf")
                     machine.succeed("test -f /etc/pam.d/hyprlock") # hyprlock can authenticate
 
+                    # Notification daemon (mako aspect): config installed; the
+                    # daemon itself is D-Bus-activated on the first
+                    # notification of a real session.
+                    machine.succeed("test -f /home/noah/.config/mako/config")
+
+                    # polkit agent (hyprpolkitagent aspect): user unit wired to
+                    # the graphical session so privileged GUI prompts work.
+                    machine.succeed("test -f /home/noah/.config/systemd/user/hyprpolkitagent.service")
+
                     # Portal stack: hyprland's own portal is registered
                     # (its daemon binary lives in libexec, not on PATH) and
                     # preferred over the gtk fallback in portals.conf, plus
@@ -108,6 +118,38 @@ in
                     machine.succeed("grep -q hyprland /etc/xdg/xdg-desktop-portal/portals.conf")
                     machine.succeed("grep -q gtk /etc/xdg/xdg-desktop-portal/portals.conf")
                     machine.succeed("test -x /run/current-system/sw/bin/brightnessctl")
+
+                    # Screenshot tool (hyprshot aspect) and userland helpers
+                    # (fastfetch; nano/nvim from the editors aspect).
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/hyprshot")
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/fastfetch")
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/nano")
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/nvim")
+
+                    # Default editor (editors aspect): Zed's CLI, with --wait
+                    # so $EDITOR blocks until the buffer is closed.
+                    machine.succeed("grep -q zeditor /etc/set-environment")
+
+                    # File-manager integration (dolphin aspect): gvfs provides
+                    # trash / MTP / network-filesystem backends as D-Bus-activated
+                    # user services.
+                    machine.succeed(
+                      "test -f /run/current-system/sw/share/systemd/user/gvfs-daemon.service"
+                    )
+
+                    # Power-profiles-daemon (framework aspect): profile
+                    # switching between AC and battery; D-Bus-activated, so
+                    # assert the unit is installed rather than started.
+                    ${
+                      if hasPPD then
+                        ''
+                          machine.succeed(
+                            "systemctl cat power-profiles-daemon.service >/dev/null"
+                          )
+                        ''
+                      else
+                        ""
+                    }
 
                     # VPN daemons. Mullvad starts unconnected (picking a relay
                     # is a manual step on the real machine). Tailscale is down

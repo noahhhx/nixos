@@ -100,6 +100,15 @@
       hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl set +5%"), { locked = true, repeating = true })
       hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"), { locked = true, repeating = true })
 
+      -- Screenshots (hyprshot, the "hyprshot" aspect): select a region
+      -- with the mouse (SUPER+SHIFT+S for the Windows snipping-key muscle
+      -- memory, plus the dedicated Print key where the keyboard has one);
+      -- SHIFT+Print shoots the focused output, CTRL+Print all outputs.
+      hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("hyprshot -m region"))
+      hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region"))
+      hl.bind("SHIFT + Print", hl.dsp.exec_cmd("hyprshot -m output"))
+      hl.bind("CTRL + Print", hl.dsp.exec_cmd("hyprshot -m full"))
+
       -- Move focus with mainMod + arrow keys
       hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
       hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))

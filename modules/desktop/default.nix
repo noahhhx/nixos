@@ -11,6 +11,8 @@ in
   flake.modules.nixos.desktop = {
     imports = with nixos; [
       base
+      dolphin
+      editors
       fonts
       home-manager
       hyprland
@@ -31,6 +33,9 @@ in
       hypridle
       hyprlock
       hyprpaper
+      hyprpolkitagent
+      hyprshot
+      mako
       walker
       waybar
       kitty
@@ -41,6 +46,8 @@ in
       devenv
       librewolf
       dolphin
+      editors
+      fastfetch
       moonlight
       bluetui
       wlctl
