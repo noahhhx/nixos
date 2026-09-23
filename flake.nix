@@ -10,6 +10,25 @@
     };
 
     import-tree.url = "github:denful/import-tree";
+
+    home-manager = {
+      url = "github:nix-community/home-manager/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Application-launcher stack: walker 2.x requires the elephant provider
+    # daemon, and nixpkgs ships elephant without providers, so both come from
+    # upstream.
+    elephant = {
+      url = "github:abenz1267/elephant";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    walker = {
+      url = "github:abenz1267/walker";
+      inputs.elephant.follows = "elephant";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

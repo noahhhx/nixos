@@ -67,6 +67,13 @@ in
                     machine.wait_for_unit("multi-user.target")
                     machine.succeed("nixos-version")
                     machine.succeed("test -f /etc/NIXOS")
+
+                    # Desktop stack: greeter is up, home-manager activated the
+                    # user profile, and the compositor is installed.
+                    machine.wait_for_unit("greetd.service")
+                    machine.wait_for_unit("home-manager-noah.service")
+                    machine.succeed("test -x /etc/profiles/per-user/noah/bin/kitty")
+                    machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
                   '';
               }
             )

@@ -19,7 +19,29 @@
 
   config = {
     hosts.default = {
-      imports = with config.flake.modules.nixos; [ base ];
+      imports = with config.flake.modules.nixos; [
+        base
+        fonts
+        home-manager
+        hyprland
+        user
+      ];
+
+      # User-level aspects (keep the username in sync with modules/user.nix).
+      home-manager.users.noah = {
+        home.stateVersion = "25.05";
+        imports = with config.flake.modules.homeManager; [
+          home
+          hyprland
+          walker
+          waybar
+          kitty
+          git
+          zed
+          librewolf
+          dolphin
+        ];
+      };
 
       networking.hostName = "default";
       nixpkgs.hostPlatform = "x86_64-linux";
