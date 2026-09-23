@@ -5,10 +5,17 @@
 # `virtualisation.docker.rootless` instead.
 { ... }:
 {
-  flake.modules.nixos.docker = {
-    virtualisation.docker.enable = true;
+  flake.modules.nixos.docker =
+    { pkgs, ... }:
+    {
+      virtualisation.docker.enable = true;
 
-    # Keep the username in sync with modules/core/user.nix.
-    users.users.noah.extraGroups = [ "docker" ];
-  };
+      # Compose v2, as both the classic `docker-compose` command and the
+      # `docker compose` subcommand (the CLI finds the plugin under the
+      # profile's libexec/docker/cli-plugins).
+      environment.systemPackages = [ pkgs.docker-compose ];
+
+      # Keep the username in sync with modules/core/user.nix.
+      users.users.noah.extraGroups = [ "docker" ];
+    };
 }

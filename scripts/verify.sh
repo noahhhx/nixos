@@ -37,7 +37,7 @@ REPO_NAME="$(basename "$REPO_ROOT" | tr -cd 'A-Za-z0-9-')"
 CONTAINER="${VERIFY_CONTAINER:-nix-verify-${REPO_NAME:-repo}}"
 # The nixos/nix image has no git, but the flake source is a git checkout;
 # git is provided via nix shell (cached in the container after first use).
-GIT_REF="${VERIFY_GIT_REF:-github:NixOS/nixpkgs/nixos-25.05}"
+GIT_REF="${VERIFY_GIT_REF:-github:NixOS/nixpkgs/nixos-26.05}"
 
 say() { printf '\033[1m[verify]\033[0m %s\n' "$*"; }
 pass() { printf '\033[1;32m[verify]\033[0m %s\n' "$*"; }

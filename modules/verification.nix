@@ -130,6 +130,17 @@ in
                     # so $EDITOR blocks until the buffer is closed.
                     machine.succeed("grep -q zeditor /etc/set-environment")
 
+                    # Nix housekeeping (base aspect): the weekly GC timer is
+                    # armed (auto-optimise-store has no service to check).
+                    machine.wait_for_unit("nix-gc.timer")
+
+                    # Default browser association (librewolf aspect):
+                    # xdg-open sends http(s) links to LibreWolf.
+                    machine.succeed("test -f /home/noah/.config/mimeapps.list")
+                    machine.succeed(
+                      "grep -q librewolf.desktop /home/noah/.config/mimeapps.list"
+                    )
+
                     # File-manager integration (dolphin aspect): gvfs provides
                     # trash / MTP / network-filesystem backends as D-Bus-activated
                     # user services.
@@ -174,13 +185,16 @@ in
                         ""
                     }
 
-                    # Containers (docker aspect): the daemon is up and the
-                    # CLI can talk to it.
+                    # Containers (docker aspect): the daemon is up, the CLI
+                    # can talk to it, and compose v2 is usable both as the
+                    # `docker compose` subcommand and standalone.
                     ${
                       if hasDocker then
                         ''
                           machine.wait_for_unit("docker.service")
                           machine.succeed("docker info >/dev/null")
+                          machine.succeed("docker compose version >/dev/null")
+                          machine.succeed("docker-compose --version >/dev/null")
                         ''
                       else
                         ""

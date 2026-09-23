@@ -51,6 +51,7 @@ in
       moonlight
       bluetui
       wlctl
+      ssh
     ];
   };
 }

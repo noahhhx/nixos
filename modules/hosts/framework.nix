@@ -14,6 +14,7 @@ in
       nixos.tailscale
       nixos.mullvad
       nixos.docker
+      nixos.secrets
     ];
 
     home-manager.users.noah = {

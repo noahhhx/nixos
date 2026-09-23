@@ -32,7 +32,7 @@ Works from any machine with `nix` **or** `docker` — you do not need to be runn
 
 ## Installing *this* configuration on the fresh install
 
-The repo currently defines two hosts in `modules/hosts.nix`: **`default`** (the VM-friendly sandbox, placeholder disk) and **`framework`** (this Framework 13 laptop, real disk layout). Both use the user `noah` (initial password `nixos` — change it with `passwd` after first login).
+The repo currently defines two hosts (registry in `modules/hosts.nix`, one file per machine in `modules/hosts/`): **`default`** (the VM-friendly sandbox, placeholder disk) and **`framework`** (this Framework 13 laptop, real disk layout). Both use the user `noah` (initial password `nixos` — change it with `passwd` after first login).
 
 1. **Get git and the repo** (the fresh install has no git):
    ```console
@@ -66,6 +66,8 @@ The VM tests use the *exact same* host modules as `nixosConfigurations` — the 
 
 ## Doing updates
 
+**How often**: monthly is a good cadence — `nix flake update` (optionally one input at a time), then `./scripts/verify.sh all` before switching. Don't let `flake.lock` sit for months: especially `nixos-hardware` moves quickly for young platforms like the Ryzen AI 300 board (kernel params, EC/audio quirks), and small regular bumps are much easier to bisect than rare big ones. Commit each bump separately so a regression maps to exactly one input change.
+
 1. **Bump the inputs** (nixpkgs, home-manager, …) — they're pinned in `flake.lock`:
    ```console
    $ nix flake update                      # everything
@@ -82,6 +84,17 @@ The VM tests use the *exact same* host modules as `nixosConfigurations` — the 
    $ sudo nixos-rebuild switch --flake ~/dev/nixos#default
    ```
 4. **Commit the updated `flake.lock`** — that commit *is* your pinned, reproducible system state. (Then `git push`, so the repo and the machine can't drift apart.)
+
+## Secrets
+
+Hosts that import the `secrets` aspect (`modules/core/secrets.nix`, currently the framework host) decrypt sops-encrypted secrets from a per-host age key in `/var/lib/sops-nix/key.txt` (generated automatically on first activation) — no plaintext in the repo, no key management beyond it. Bootstrap recipe and usage are documented at the top of that module; in short:
+
+```console
+$ sudo nix shell nixpkgs#age -- age-keygen -y /var/lib/sops-nix/key.txt  # this host's age pubkey
+$ nix shell nixpkgs#sops -- sops --age age1... modules/core/secrets.yaml # create/edit secrets
+```
+
+then reference them as `sops.secrets.<name>.path` in configuration. The encrypted file must be git-tracked.
 
 ## Reverting
 
@@ -110,8 +123,8 @@ Every `nixos-rebuild` creates a **generation** — a complete, bootable snapshot
 
 The `framework` host (`modules/hosts.nix`) is already defined for the Framework Laptop 13 with the AMD Ryzen AI 300 series board, composed from the same aspects as `default` plus:
 
-- **`framework` aspect** (`modules/framework.nix`) — Radeon 890M graphics (mesa + early KMS for the 2256x1504 panel), NetworkManager + Bluetooth for the MT7925 WiFi 7 chip (in-tree driver, no out-of-tree firmware needed), Goodix fingerprint reader (`fprintd-enroll` after install), firmware updates via LVFS (`fwupdmgr`), and full-RAM zstd zram swap.
-- **`audio` aspect** (`modules/audio.nix`) — the PipeWire stack.
+- **`framework` aspect** (`modules/hardware/framework.nix`) — Radeon 890M graphics (mesa + early KMS for the 2256x1504 panel), NetworkManager + Bluetooth for the MT7925 WiFi 7 chip (in-tree driver, no out-of-tree firmware needed), firmware updates via LVFS (`fwupdmgr`), and full-RAM zstd zram swap. The fingerprint reader is deliberately unused (plain passwords).
+- **`audio` aspect** (`modules/hardware/audio.nix`) — the PipeWire stack.
 - **The real disk layout** — systemd-boot on a 2G ESP, LUKS2 root, btrfs subvolumes (`@`, `@home`, `@log`, `@pkg`) with zstd compression, matching this machine's current partitioning. The UUIDs were captured from the existing install; **if you reinstall from scratch, update them from the installer-generated `/etc/nixos/hardware-configuration.nix`.**
 
 To apply it on the laptop:

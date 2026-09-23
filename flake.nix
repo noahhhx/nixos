@@ -41,6 +41,20 @@
       inputs.elephant.follows = "elephant";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Encrypted secrets, decrypted on the host from its own SSH host key
+    # (see modules/core/secrets.nix for the bootstrap recipe).
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Prebuilt nix-index database plus `,` (comma) for running any nixpkgs
+    # package ad hoc — see modules/apps/devenv.nix.
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

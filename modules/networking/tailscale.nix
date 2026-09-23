@@ -14,8 +14,8 @@
     # Runtime opt-in instead of boot autostart.
     systemd.services.tailscaled.wantedBy = lib.mkForce [ ];
 
-    # Tailnet traffic should never be filtered by the local firewall (no-op
-    # while the firewall is disabled).
+    # Tailnet traffic should never be filtered by the local firewall
+    # (default-deny, explicitly enabled by the "base" aspect).
     networking.firewall.trustedInterfaces = [ "tailscale0" ];
   };
 }

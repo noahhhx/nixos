@@ -10,13 +10,13 @@ in
     imports = [ nixos.desktop ];
 
     home-manager.users.noah = {
-      home.stateVersion = "25.05";
+      home.stateVersion = "26.05";
       imports = [ homeManager.desktop ];
     };
 
     networking.hostName = "default";
     nixpkgs.hostPlatform = "x86_64-linux";
-    system.stateVersion = "25.05";
+    system.stateVersion = "26.05";
 
     # Placeholder boot setup so the closure builds and boots in a VM.
     # Replace per real host (mkDefault lets the VM/test framework override).
