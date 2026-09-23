@@ -35,6 +35,7 @@ Bundle aspects (like `desktop`) compose other aspects so hosts stay short; a hos
 5. **No `specialArgs` / `extraSpecialArgs`** — share values between classes via file-scoped `let` bindings or top-level flake-parts options, not by injecting module arguments.
 6. **Prefer `mkEnableOption`-style gating** — modules are imported but features are opted into; don't enable everything by default.
 7. **Declare inputs where used** — flake inputs needed by a feature are declared in that feature's module (via `vic/flake-file`), keeping `flake.nix` minimal.
+8. **No speculative hardware facts** — board enablement (drivers, firmware, quirks; e.g. `modules/hardware/framework.nix`) describes what a machine *is* and may be written ahead of a real machine. Install-specific disk facts (partitioning, UUIDs, LUKS, swap layout, real bootloader) describe what an install *created* and must come from an actual install — the installer-generated `hardware-configuration.nix`, a [disko](https://github.com/nix-community/disko) declaration applied at install time, or [nixos-facter](https://github.com/nix-community/nixos-facter). Never invent them or copy them from a previous OS. Until a real install exists, hosts carry the `mkDefault` placeholder disk config (see `modules/hosts/default.nix`).
 
 ## Canonical example
 

@@ -32,7 +32,7 @@ Works from any machine with `nix` **or** `docker` — you do not need to be runn
 
 ## Installing *this* configuration on the fresh install
 
-The repo currently defines two hosts (registry in `modules/hosts.nix`, one file per machine in `modules/hosts/`): **`default`** (the VM-friendly sandbox, placeholder disk) and **`framework`** (this Framework 13 laptop, real disk layout). Both use the user `noah` (initial password `nixos` — change it with `passwd` after first login).
+The repo currently defines two hosts (registry in `modules/hosts.nix`, one file per machine in `modules/hosts/`): **`default`** (the VM-friendly sandbox, placeholder disk) and **`framework`** (the Framework 13 laptop). Both use the user `noah` (initial password `nixos` — change it with `passwd` after first login). The framework host carries board enablement but **no disk layout yet** — no install has happened on the machine, so its disk/boot facts are added at first install (step 2 below); until then it uses a `mkDefault` placeholder that the VM checks override.
 
 1. **Get git and the repo** (the fresh install has no git):
    ```console
@@ -40,7 +40,7 @@ The repo currently defines two hosts (registry in `modules/hosts.nix`, one file 
    $ git clone <this-repo-url> ~/dev/nixos
    $ cd ~/dev/nixos
    ```
-2. **Port the hardware config.** The installer wrote the *real* partitioning and boot setup to `/etc/nixos/hardware-configuration.nix`. For the framework host, diff it against the `hosts.framework` entry in `modules/hosts.nix` (which already carries this machine's disk layout) and update any UUIDs that changed. Keep the config in the repo so the machine is fully reproducible.
+2. **Port the hardware config.** The installer wrote the *real* partitioning and boot setup to `/etc/nixos/hardware-configuration.nix`. Replace the placeholder `boot.loader`/`fileSystems` block in `modules/hosts/framework.nix` with the real one from that file (plain values, not `mkDefault` — the VM/test plumbing overrides them anyway), and commit it. Keeping it in the repo is what makes the machine fully reproducible; committing it only *after* a real install is what keeps it honest (see AGENTS.md rule 8).
 3. **Commit** — important: nix only sees git-*tracked* files, so `git add -A && git commit` before rebuilding, otherwise new/renamed modules are silently ignored.
 4. **Switch** to this configuration — pick the host that matches the machine (`nixos-rebuild list-generations`-style host name from `modules/hosts.nix`):
    ```console
@@ -62,7 +62,7 @@ $ nix run .#checks.x86_64-linux.vm-test-framework.driver.interactive   # scripte
 $ ./scripts/verify.sh all                               # builds + boots all hosts headless
 ```
 
-The VM tests use the *exact same* host modules as `nixosConfigurations` — the test plumbing transparently replaces the real disk config (`fileSystems`, LUKS, swap) with virtual disks — so anything that passes there (boots, reaches `multi-user.target`) will at least boot on real hardware too. Use this to try risky changes before touching the laptop.
+The VM tests use the *exact same* host modules as `nixosConfigurations` — the test plumbing transparently replaces the host's disk config (`fileSystems`, LUKS, swap) with virtual disks — so anything that passes there (boots, reaches `multi-user.target`) will at least boot on real hardware too. Use this to try risky changes before touching the laptop.
 
 ## Doing updates
 
@@ -125,7 +125,12 @@ The `framework` host (`modules/hosts.nix`) is already defined for the Framework 
 
 - **`framework` aspect** (`modules/hardware/framework.nix`) — Radeon 890M graphics (mesa + early KMS for the 2256x1504 panel), NetworkManager + Bluetooth for the MT7925 WiFi 7 chip (in-tree driver, no out-of-tree firmware needed), firmware updates via LVFS (`fwupdmgr`), and full-RAM zstd zram swap. The fingerprint reader is deliberately unused (plain passwords).
 - **`audio` aspect** (`modules/hardware/audio.nix`) — the PipeWire stack.
-- **The real disk layout** — systemd-boot on a 2G ESP, LUKS2 root, btrfs subvolumes (`@`, `@home`, `@log`, `@pkg`) with zstd compression, matching this machine's current partitioning. The UUIDs were captured from the existing install; **if you reinstall from scratch, update them from the installer-generated `/etc/nixos/hardware-configuration.nix`.**
+- **The disk layout** — *not defined yet, deliberately*. No NixOS install has happened on the machine, and a disk layout is an install-time fact, not a board fact, so the host currently carries the same `mkDefault` placeholder disk as `default` — enough to build and pass the VM checks without pretending to know the real disk. When the install happens, the real layout lands in `modules/hosts/framework.nix` via one of the standard community routes:
+  - **Port the installer's output** — copy the generated `/etc/nixos/hardware-configuration.nix` (fileSystems, bootloader, swap) into the host entry and drop the placeholder. The classic path; zero pre-commitment about layout.
+  - **Declare it with [disko](https://github.com/nix-community/disko)** — write the *intended* layout as a disko module (ESP, LUKS, btrfs/ext4 — your call at install time) and install via `disko-install` from the ISO or [nixos-anywhere](https://github.com/nix-community/nixos-anywhere). Disko owns partitioning *and* derives the mount config, so there are no UUIDs to capture and a future reinstall is one command. The popular choice for Framework machines in the wild.
+  - ([nixos-facter](https://github.com/nix-community/nixos-facter) — the community's successor to `hardware-configuration.nix`: a JSON hardware report generated from the machine and consumed by `nixos-facter-modules`. Worth considering if more machines join the fleet.)
+
+  Hibernation, if wanted, is decided together with the layout — the zram swap from the `framework` aspect can't hold an image, so it needs disk-backed swap (a nocow btrfs swapfile or a plain swap partition).
 
 To apply it on the laptop:
 

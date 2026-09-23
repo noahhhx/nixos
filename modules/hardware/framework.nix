@@ -1,7 +1,11 @@
-# The "framework" aspect: hardware support for the Framework Laptop 13
+# The "framework" aspect: hardware enablement for the Framework Laptop 13
 # (AMD Ryzen AI 300 series board — Ryzen AI 9 HX 370, Radeon 890M, MediaTek
-# MT7925 WiFi 7/BT). Everything here is hardware enablement and works under
-# the VM checks too; disk/boot layout is host-specific and lives in hosts.nix.
+# MT7925 WiFi 7/BT). Everything here is board-level enablement: facts about
+# the machine itself, independent of how the disk ends up partitioned, and
+# all of it works under the VM checks too. Install-specific disk facts
+# (fileSystems, LUKS, swap layout) are NOT hardware enablement — they are
+# decided and captured at first install and live in the host entry
+# (modules/hosts/), never here.
 #
 # The board-specific nixos-hardware module (framework-amd-ai-300-series)
 # contributes the community-maintained enablement: amd-pstate and amdgpu
@@ -53,8 +57,11 @@
     # System (BIOS/EC) and expansion-card firmware updates via LVFS.
     services.fwupd.enable = true;
 
-    # zram swap: full-RAM zstd zram, zswap off — matches what this machine
-    # already runs (62G zram on 64G RAM, only allocated as used).
+    # zram swap: full-RAM zstd zram, zswap off — zram pages are only
+    # allocated as used, so sizing it to RAM costs nothing at idle, and it
+    # works in the VM checks. Any disk-backed swap (e.g. for hibernation,
+    # which zram can't hold) is an install-time decision made together with
+    # the real disk layout in the host entry.
     zramSwap = {
       enable = true;
       algorithm = "zstd";
