@@ -16,6 +16,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # WiFi/VPN TUI for NetworkManager; not yet in nixpkgs (nixpkgs only has
+    # wlrctl, a different tool), so it comes from the upstream flake.
+    wlctl = {
+      url = "github:aashish-thapa/wlctl";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Application-launcher stack: walker 2.x requires the elephant provider
     # daemon, and nixpkgs ships elephant without providers, so both come from
     # upstream.

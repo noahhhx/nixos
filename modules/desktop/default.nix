@@ -42,6 +42,8 @@ in
       librewolf
       dolphin
       moonlight
+      bluetui
+      wlctl
     ];
   };
 }
