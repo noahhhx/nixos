@@ -1,6 +1,6 @@
 -- Keybindings. mainMod is SUPER ("Windows" key).
 
-local terminal    = "kitty"
+local terminal    = "kitty --single-instance --listen-on unix:@kitty"
 local fileManager = "dolphin"
 local menu        = "walker"
 
