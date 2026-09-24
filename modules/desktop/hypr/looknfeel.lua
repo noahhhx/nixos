@@ -1,11 +1,11 @@
-local activeBorder = { colors = { "rgba(33ccffee)", "rgba(00ff99ee)" }, angle = 45 }
-local inactiveBorder = "rgba(595959aa)"
+local activeBorder = "rgba(ffffffcc)"
+local inactiveBorder = "rgba(3d3d3daa)"
 
 hl.config({
     general = {
         gaps_in     = 5,
         gaps_out    = 10,
-        border_size = 2,
+        border_size = 1,
 
         col = {
             active_border   = activeBorder,
@@ -40,10 +40,10 @@ hl.config({
 
     group = {
         col = {
-            border_active         = activeBorder,
-            border_inactive       = inactiveBorder,
-            border_locked_active   = -1,
-            border_locked_inactive = -1,
+            border_active          = activeBorder,
+            border_inactive        = inactiveBorder,
+            border_locked_active   = activeBorder,
+            border_locked_inactive = inactiveBorder,
         },
 
         groupbar = {
@@ -72,7 +72,6 @@ hl.config({
     },
 
     dwindle = {
-        pseudotile     = true,
         preserve_split = true,
         force_split    = 2,
     },
