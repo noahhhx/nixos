@@ -40,6 +40,7 @@ in
       dolphin
       editors
       fastfetch
+      btop
       moonlight
       bluetui
       wlctl
