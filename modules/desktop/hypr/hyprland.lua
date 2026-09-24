@@ -4,6 +4,8 @@
 
 require("envs")
 require("monitors")
+require("input")
+require("looknfeel")
 require("bindings")
 require("windows")
-
+require("autostart")

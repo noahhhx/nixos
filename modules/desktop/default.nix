@@ -45,6 +45,8 @@ in
       bluetui
       wlctl
       ssh
+      github-desktop
+      lazydocker
     ];
   };
 }
