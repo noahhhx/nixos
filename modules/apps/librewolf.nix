@@ -3,7 +3,14 @@
   flake.modules.homeManager.librewolf =
     { pkgs, ... }:
     {
-      home.packages = [ pkgs.librewolf ];
+      programs.librewolf = {
+        enable = true;
+        package = pkgs.librewolf;
+        settings = {
+          "ui.systemUsesDarkTheme" = true;
+          "browser.theme.content-theme" = 0;
+        };
+      };
 
       xdg.mimeApps = {
         enable = true;
