@@ -1,0 +1,55 @@
+{
+  "layer": "top",
+  "height": 32,
+  "margin-left": 10,
+  "margin-right": 10,
+  "spacing": 12,
+
+  "modules-left": [ "hyprland/workspaces" ],
+  "modules-center": [ "clock" ],
+  "modules-right": [ "bluetooth", "pulseaudio", "network", "battery" ],
+
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "format-icons": {
+      "default": "",
+      "active": "",
+      "urgent": ""
+    },
+    "persistent-workspaces": { "*": 5 }
+  },
+
+  "clock": {
+    "format": "  {:%A %d %b  ·  %H:%M}",
+    "tooltip-format": "{calendar}"
+  },
+
+  "bluetooth": {
+    "format": " off",
+    "format-connected": " {num_connections}",
+    "tooltip-format": "{controller_alias}  {controller_address}",
+    "tooltip-format-connected": "{controller_alias}  {controller_address}\n\n{device_enumerate}"
+  },
+
+  "pulseaudio": {
+    "format": " {volume}%",
+    "format-muted": " muted",
+    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+
+  "network": {
+    "format-wifi": " {essid}",
+    "format-ethernet": " {ifname}",
+    "format-disconnected": " off"
+  },
+
+  "battery": {
+    "format": "{icon} {capacity}%",
+    "format-charging": " {capacity}%",
+    "format-icons": [ "", "", "", "", "" ],
+    "states": {
+      "warning": 30,
+      "critical": 15
+    }
+  }
+}
