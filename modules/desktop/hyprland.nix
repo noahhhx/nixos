@@ -12,11 +12,14 @@
       # start-hyprland is Hyprland 0.55's watchdog launcher (the bare binary
       # warns "started without start-hyprland, highly not recommended"); bare
       # name resolved via PATH per the nixpkgs uwsm module, avoiding version
-      # mismatch.
+      # mismatch. "-e -D Hyprland": uwsm otherwise fills XDG_CURRENT_DESKTOP
+      # from the binary basename ("start-hyprland"), and Hyprland warns
+      # "environment seems to be managed externally" on any value except
+      # exactly "Hyprland".
       services.greetd = {
         enable = true;
         settings.default_session = {
-          command = "${lib.getExe pkgs.greetd.tuigreet} --time --cmd '${lib.getExe pkgs.uwsm} start -- start-hyprland'";
+          command = "${lib.getExe pkgs.greetd.tuigreet} --time --cmd '${lib.getExe pkgs.uwsm} start -e -D Hyprland -- start-hyprland'";
           user = "greeter";
         };
       };
