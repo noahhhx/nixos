@@ -99,6 +99,15 @@ in
                     machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprlock")
                     machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
 
+                    # uwsm session plumbing (withUWSM): the greeter's session
+                    # command needs uwsm on PATH and its user units installed,
+                    # otherwise the login bounces back to the greeter (see the
+                    # hyprland aspect).
+                    machine.succeed("test -x /run/current-system/sw/bin/uwsm")
+                    machine.succeed(
+                      "test -f /run/current-system/sw/share/systemd/user/wayland-session-bindpid@.service"
+                    )
+
                     # Hypr ecosystem session services (installed by
                     # home-manager activation as user units; they only run
                     # once a Wayland session exists, which the VM test

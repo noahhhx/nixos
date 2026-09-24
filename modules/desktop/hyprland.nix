@@ -11,13 +11,27 @@
   flake.modules.nixos.hyprland =
     { lib, pkgs, ... }:
     {
-      programs.hyprland.enable = true; # withUWSM is on by default
+      programs.hyprland.enable = true;
+      # Explicit (nixpkgs' withUWSM defaults to *false*): enabling it pulls in
+      # programs.uwsm, which puts uwsm on PATH and installs its systemd user
+      # units (wayland-wm@.service, wayland-session-bindpid@.service, ...).
+      # Without them the greetd session command ("uwsm start -- hyprland")
+      # fails with "Unit wayland-session-bindpid@... not found" and the login
+      # bounces straight back to the greeter.
+      programs.hyprland.withUWSM = true;
 
       # Minimal greeter: textual login on tty, then Hyprland via uwsm.
+      # The compositor command is `start-hyprland` (Hyprland 0.55's watchdog
+      # launcher, which also sets up the Nix env): launching the bare
+      # compositor binary instead makes Hyprland warn "started without
+      # start-hyprland, highly not recommended". uwsm 0.26 knows it
+      # (quirks_start_hyprland applies the same session quirks as hyprland).
+      # Bare name, resolved via PATH to /run/current-system/sw/bin, per the
+      # nixpkgs uwsm module's guidance (avoids version mismatch).
       services.greetd = {
         enable = true;
         settings.default_session = {
-          command = "${lib.getExe pkgs.greetd.tuigreet} --time --cmd '${lib.getExe pkgs.uwsm} start -- ${lib.getExe pkgs.hyprland}'";
+          command = "${lib.getExe pkgs.greetd.tuigreet} --time --cmd '${lib.getExe pkgs.uwsm} start -- start-hyprland'";
           user = "greeter";
         };
       };
