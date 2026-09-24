@@ -66,6 +66,29 @@ in
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/kitty")
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/pi")
 
+                  # Login shells are stored as /run/current-system/sw/bin/zsh
+                  # (lib.toShellPath) and terminals exec that path (kitty even
+                  # prefers $SHELL, which greetd fills from passwd), so it must
+                  # be the wrapped zsh, or shells start with no ZDOTDIR and
+                  # zsh-newuser-install greets every new terminal.
+                  machine.succeed(
+                    "grep -aq zsh-dot-dir /run/current-system/sw/bin/zsh"
+                  )
+                  machine.succeed(
+                    "getent passwd ${primaryUser}"
+                    + " | grep -q '/run/current-system/sw/bin/zsh'"
+                  )
+                  machine.succeed(
+                    "runuser -u ${primaryUser} -- env HOME=/home/${primaryUser} TERM=xterm"
+                    + " /run/current-system/sw/bin/zsh -ic 'print -r -- $ZDOTDIR'"
+                    + " 2>/dev/null | grep -q zsh-dot-dir"
+                  )
+                  machine.fail(
+                    "runuser -u ${primaryUser} -- env HOME=/home/${primaryUser} TERM=xterm"
+                    + " /run/current-system/sw/bin/zsh -ic true 2>&1"
+                    + " | grep -q 'no zsh startup files'"
+                  )
+
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/devenv")
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/direnv")
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprlock")
@@ -74,6 +97,12 @@ in
                   machine.succeed("test -x /run/current-system/sw/bin/uwsm")
                   machine.succeed(
                     "test -f /run/current-system/sw/share/systemd/user/wayland-session-bindpid@.service"
+                  )
+                  # uwsm fills XDG_CURRENT_DESKTOP from the binary basename
+                  # unless overridden; Hyprland warns unless it is "Hyprland".
+                  machine.succeed(
+                    "systemctl cat greetd.service | grep -oP '(?<=--config )\S+'"
+                    + " | head -1 | xargs grep -q 'uwsm start -e -D Hyprland -- start-hyprland'"
                   )
 
                   # These only run once a Wayland session exists, which the
