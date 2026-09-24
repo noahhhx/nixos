@@ -15,6 +15,7 @@ in
       user
       devenv
       intellij
+      zsh
     ];
   };
 
