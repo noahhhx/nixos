@@ -55,9 +55,8 @@ clean_docker() {
   fi
 }
 
-# --- argument parsing --------------------------------------------------------
 
-MODE="auto" # auto | docker
+MODE="auto"
 FIX=0
 TIERS=()
 
@@ -75,7 +74,6 @@ while [ $# -gt 0 ]; do
 done
 [ "${#TIERS[@]}" -gt 0 ] || TIERS+=(fmt eval)
 
-# --- environment selection ---------------------------------------------------
 
 have_nix() { command -v nix >/dev/null 2>&1; }
 have_docker() { command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; }
@@ -110,7 +108,6 @@ ensure_container() {
     git config --global --add safe.directory /work >/dev/null
 }
 
-# run <cmd...> — run a command with nix (and git) available.
 run() {
   if (( DOCKER )); then
     ensure_container
@@ -120,7 +117,6 @@ run() {
   fi
 }
 
-# --- helpers ------------------------------------------------------------------
 
 ensure_lock() {
   if [ ! -e flake.lock ]; then
@@ -152,7 +148,6 @@ list_check_systems() {
   run nix eval --raw .#checks --apply 'a: builtins.concatStringsSep " " (builtins.attrNames a)'
 }
 
-# --- tiers --------------------------------------------------------------------
 
 tier_fmt() {
   banner fmt
@@ -161,11 +156,9 @@ tier_fmt() {
   [ -n "$files" ] || die "no .nix files found (repo moved?)"
   ensure_lock
   if (( FIX )); then
-    # shellcheck disable=SC2086
     run nix fmt -- $files
     pass "formatted (nixfmt-rfc-style)"
   else
-    # shellcheck disable=SC2086
     if run nix fmt -- --check $files; then
       pass "formatting ok (nixfmt-rfc-style)"
     else
@@ -228,7 +221,6 @@ tier_vm() {
   done
 }
 
-# --- main ---------------------------------------------------------------------
 
 main() {
   local t

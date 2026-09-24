@@ -1,14 +1,3 @@
-# Verification: everything needed to prove that a change to this flake
-# works, from any machine — including one that does not run the OS this repo
-# installs. See the "Verification system" section in AGENTS.md for usage.
-#
-# Exposes (per system):
-#   formatter.<system>                     nixfmt-rfc-style (nix fmt)
-#   checks.<system>.toplevel-<host>        host closure builds
-#   checks.<system>.vm-test-<host>         host boots in a headless QEMU VM
-#                                          (building this check RUNS the test)
-#   packages.<system>.vm-<host>            interactive VM (nix run .#vm-<host>)
-#   apps.<system>.verify                   scripts/verify.sh as a flake app
 {
   config,
   inputs,
@@ -20,7 +9,6 @@ let
   inherit (config) hosts;
   inherit (config.flake) nixosConfigurations;
 
-  # Wrap a host module into an interactive QEMU VM runner.
   vmFor =
     host:
     (inputs.nixpkgs.lib.nixosSystem {
@@ -42,197 +30,144 @@ in
       formatter = pkgs.nixfmt-rfc-style;
 
       checks =
-        (
-          # Every host must build a complete system closure.
-          lib.mapAttrs' (
-            name: _host:
-            lib.nameValuePair "toplevel-${name}" (nixosConfigurations.${name}.config.system.build.toplevel)
-          ) hosts
-        )
-        // (
-          # Every host must boot in a headless QEMU VM and reach a sane state.
-          lib.mapAttrs' (
-            name: host:
-            lib.nameValuePair "vm-test-${name}" (
-              pkgs.testers.nixosTest {
-                name = "boot-${name}";
-                nodes.machine = {
-                  imports = [ host ];
-                };
-                # Extend with feature-specific assertions as the config grows
-                # (e.g. machine.wait_for_unit("<new-service>.service")).
-                # Hosts opt into only some aspects, so assertions for optional
-                # services are guarded by what the host's config enables.
-                testScript =
-                  let
-                    hostConfig = nixosConfigurations.${name}.config;
-                    # The primary interactive user (each host defines
-                    # exactly one); the profile paths below depend on it.
-                    primaryUser = lib.head (
-                      lib.filter (u: hostConfig.users.users.${u}.isNormalUser or false) (
-                        lib.attrNames hostConfig.users.users
-                      )
-                    );
-                    hasTailscale = hostConfig.services.tailscale.enable;
-                    hasMullvad = hostConfig.services.mullvad-vpn.enable;
-                    hasDocker = hostConfig.virtualisation.docker.enable;
-                    hasPPD = hostConfig.services.power-profiles-daemon.enable;
-                  in
-                  # python
-                  ''
-                    start_all()
-                    machine.wait_for_unit("multi-user.target")
-                    machine.succeed("nixos-version")
-                    machine.succeed("test -f /etc/NIXOS")
-
-                    # Desktop stack: greeter is up, home-manager activated the
-                    # user profile, and the compositor is installed.
-                    machine.wait_for_unit("greetd.service")
-                    machine.wait_for_unit("home-manager-${primaryUser}.service")
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/kitty")
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/pi")
-
-                    # Dev tooling (devenv aspect, part of the desktop bundle):
-                    # the CLI and direnv are on the user's PATH.
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/devenv")
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/direnv")
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprlock")
-                    machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
-
-                    # uwsm session plumbing (withUWSM): the greeter's session
-                    # command needs uwsm on PATH and its user units installed,
-                    # otherwise the login bounces back to the greeter (see the
-                    # hyprland aspect).
-                    machine.succeed("test -x /run/current-system/sw/bin/uwsm")
-                    machine.succeed(
-                      "test -f /run/current-system/sw/share/systemd/user/wayland-session-bindpid@.service"
+        (lib.mapAttrs' (
+          name: _host:
+          lib.nameValuePair "toplevel-${name}" (nixosConfigurations.${name}.config.system.build.toplevel)
+        ) hosts)
+        // (lib.mapAttrs' (
+          name: host:
+          lib.nameValuePair "vm-test-${name}" (
+            pkgs.testers.nixosTest {
+              name = "boot-${name}";
+              nodes.machine = {
+                imports = [ host ];
+              };
+              testScript =
+                let
+                  hostConfig = nixosConfigurations.${name}.config;
+                  primaryUser = lib.head (
+                    lib.filter (u: hostConfig.users.users.${u}.isNormalUser or false) (
+                      lib.attrNames hostConfig.users.users
                     )
+                  );
+                  hasTailscale = hostConfig.services.tailscale.enable;
+                  hasMullvad = hostConfig.services.mullvad-vpn.enable;
+                  hasDocker = hostConfig.virtualisation.docker.enable;
+                  hasPPD = hostConfig.services.power-profiles-daemon.enable;
+                in
+                ''
+                  start_all()
+                  machine.wait_for_unit("multi-user.target")
+                  machine.succeed("nixos-version")
+                  machine.succeed("test -f /etc/NIXOS")
 
-                    # Hypr ecosystem session services (installed by
-                    # home-manager activation as user units; they only run
-                    # once a Wayland session exists, which the VM test
-                    # does not start, so assert on the units instead).
-                    machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hypridle.service")
-                    machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpaper.service")
-                    machine.succeed("test -f /home/${primaryUser}/.config/hypr/hyprlock.conf")
-                    machine.succeed("test -f /etc/pam.d/hyprlock") # hyprlock can authenticate
+                  machine.wait_for_unit("greetd.service")
+                  machine.wait_for_unit("home-manager-${primaryUser}.service")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/kitty")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/pi")
 
-                    # Notification daemon (mako aspect): config installed; the
-                    # daemon itself is D-Bus-activated on the first
-                    # notification of a real session.
-                    machine.succeed("test -f /home/${primaryUser}/.config/mako/config")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/devenv")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/direnv")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprlock")
+                  machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
 
-                    # polkit agent (hyprpolkitagent aspect): user unit wired to
-                    # the graphical session so privileged GUI prompts work.
-                    machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpolkitagent.service")
+                  machine.succeed("test -x /run/current-system/sw/bin/uwsm")
+                  machine.succeed(
+                    "test -f /run/current-system/sw/share/systemd/user/wayland-session-bindpid@.service"
+                  )
 
-                    # Portal stack: hyprland's own portal is registered
-                    # (its daemon binary lives in libexec, not on PATH) and
-                    # preferred over the gtk fallback in portals.conf, plus
-                    # the media-key helper on PATH.
-                    machine.succeed("test -f /run/current-system/sw/share/xdg-desktop-portal/portals/hyprland.portal")
-                    machine.succeed("grep -q hyprland /etc/xdg/xdg-desktop-portal/portals.conf")
-                    machine.succeed("grep -q gtk /etc/xdg/xdg-desktop-portal/portals.conf")
-                    machine.succeed("test -x /run/current-system/sw/bin/brightnessctl")
+                  # These only run once a Wayland session exists, which the
+                  # VM test does not start, so assert on the units instead.
+                  machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hypridle.service")
+                  machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpaper.service")
+                  machine.succeed("test -f /home/${primaryUser}/.config/hypr/hyprlock.conf")
+                  machine.succeed("test -f /etc/pam.d/hyprlock")
 
-                    # Screenshot tool (hyprshot aspect) and userland helpers
-                    # (fastfetch; nano/nvim from the editors aspect).
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprshot")
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/fastfetch")
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nano")
-                    machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nvim")
+                  # mako is D-Bus-activated on the first notification of a real session.
+                  machine.succeed("test -f /home/${primaryUser}/.config/mako/config")
 
-                    # Default editor (editors aspect): Zed's CLI, with --wait
-                    # so $EDITOR blocks until the buffer is closed.
-                    machine.succeed("grep -q zeditor /etc/set-environment")
+                  machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpolkitagent.service")
 
-                    # Nix housekeeping (base aspect): the weekly GC timer is
-                    # armed (auto-optimise-store has no service to check).
-                    machine.wait_for_unit("nix-gc.timer")
+                  # The hyprland portal's daemon lives in libexec, not on PATH.
+                  machine.succeed("test -f /run/current-system/sw/share/xdg-desktop-portal/portals/hyprland.portal")
+                  machine.succeed("grep -q hyprland /etc/xdg/xdg-desktop-portal/portals.conf")
+                  machine.succeed("grep -q gtk /etc/xdg/xdg-desktop-portal/portals.conf")
+                  machine.succeed("test -x /run/current-system/sw/bin/brightnessctl")
 
-                    # Default browser association (librewolf aspect):
-                    # xdg-open sends http(s) links to LibreWolf.
-                    machine.succeed("test -f /home/${primaryUser}/.config/mimeapps.list")
-                    machine.succeed(
-                      "grep -q librewolf.desktop /home/${primaryUser}/.config/mimeapps.list"
-                    )
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprshot")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/fastfetch")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nano")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nvim")
 
-                    # File-manager integration (dolphin aspect): gvfs provides
-                    # trash / MTP / network-filesystem backends as D-Bus-activated
-                    # user services.
-                    machine.succeed(
-                      "test -f /run/current-system/sw/share/systemd/user/gvfs-daemon.service"
-                    )
+                  machine.succeed("grep -q zeditor /etc/set-environment")
 
-                    # Power-profiles-daemon (framework aspect): profile
-                    # switching between AC and battery; D-Bus-activated, so
-                    # assert the unit is installed rather than started.
-                    ${
-                      if hasPPD then
-                        ''
-                          machine.succeed(
-                            "systemctl cat power-profiles-daemon.service >/dev/null"
-                          )
-                        ''
-                      else
-                        ""
-                    }
+                  machine.wait_for_unit("nix-gc.timer")
 
-                    # VPN daemons. Mullvad starts unconnected (picking a relay
-                    # is a manual step on the real machine). Tailscale is down
-                    # by default: assert it stays down at boot and that the
-                    # user's switch (systemctl start) brings it up.
-                    ${
-                      if hasTailscale then
-                        ''
-                          machine.fail("systemctl is-active tailscaled.service")
-                          machine.succeed("systemctl start tailscaled.service")
-                          machine.wait_for_unit("tailscaled.service")
-                        ''
-                      else
-                        ""
-                    }
-                    ${
-                      if hasMullvad then
-                        ''
-                          machine.wait_for_unit("mullvad-daemon.service")
-                        ''
-                      else
-                        ""
-                    }
+                  machine.succeed("test -f /home/${primaryUser}/.config/mimeapps.list")
+                  machine.succeed(
+                    "grep -q librewolf.desktop /home/${primaryUser}/.config/mimeapps.list"
+                  )
 
-                    # Containers (docker aspect): the daemon is up, the CLI
-                    # can talk to it, and compose v2 is usable both as the
-                    # `docker compose` subcommand and standalone.
-                    ${
-                      if hasDocker then
-                        ''
-                          machine.wait_for_unit("docker.service")
-                          machine.succeed("docker info >/dev/null")
-                          machine.succeed("docker compose version >/dev/null")
-                          machine.succeed("docker-compose --version >/dev/null")
-                        ''
-                      else
-                        ""
-                    }
+                  machine.succeed(
+                    "test -f /run/current-system/sw/share/systemd/user/gvfs-daemon.service"
+                  )
 
-                    # Sleep stack: the kernel exposes suspend (mem) and
-                    # hibernate (disk) sleep states, and systemd's sleep
-                    # units are present. Exercising a full S3/S4 cycle is not
-                    # faithful under QEMU (the test plumbing replaces the
-                    # host's real swap/LUKS layout), so the actual resume path
-                    # is verified on the metal host instead.
-                    machine.succeed("grep -q mem /sys/power/state")
-                    machine.succeed("grep -q disk /sys/power/state")
-                    machine.succeed(
-                      "systemctl cat systemd-suspend.service"
-                      + " systemd-hibernate.service >/dev/null"
-                    )
-                  '';
-              }
-            )
-          ) hosts
-        );
+                  # D-Bus-activated; assert the unit is installed rather than started.
+                  ${
+                    if hasPPD then
+                      ''
+                        machine.succeed(
+                          "systemctl cat power-profiles-daemon.service >/dev/null"
+                        )
+                      ''
+                    else
+                      ""
+                  }
+
+                  ${
+                    if hasTailscale then
+                      ''
+                        machine.fail("systemctl is-active tailscaled.service")
+                        machine.succeed("systemctl start tailscaled.service")
+                        machine.wait_for_unit("tailscaled.service")
+                      ''
+                    else
+                      ""
+                  }
+                  ${
+                    if hasMullvad then
+                      ''
+                        machine.wait_for_unit("mullvad-daemon.service")
+                      ''
+                    else
+                      ""
+                  }
+
+                  ${
+                    if hasDocker then
+                      ''
+                        machine.wait_for_unit("docker.service")
+                        machine.succeed("docker info >/dev/null")
+                        machine.succeed("docker compose version >/dev/null")
+                        machine.succeed("docker-compose --version >/dev/null")
+                      ''
+                    else
+                      ""
+                  }
+
+                  # A full S3/S4 cycle is not faithful under QEMU (the test plumbing
+                  # replaces the real swap/LUKS layout); resume is verified on the
+                  # metal host.
+                  machine.succeed("grep -q mem /sys/power/state")
+                  machine.succeed("grep -q disk /sys/power/state")
+                  machine.succeed(
+                    "systemctl cat systemd-suspend.service"
+                    + " systemd-hibernate.service >/dev/null"
+                  )
+                '';
+            }
+          )
+        ) hosts);
 
       packages = lib.mapAttrs' (name: host: lib.nameValuePair "vm-${name}" (vmFor host)) hosts;
 

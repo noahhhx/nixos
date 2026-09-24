@@ -1,8 +1,5 @@
-# The "hyprlock" aspect: the GPU-accelerated lock screen of the Hypr
-# ecosystem, invoked by the "hypridle" aspect (and SUPER+L in the "hyprland"
-# aspect). The screen is configured on the home-manager side; the NixOS side
-# carries the PAM entry that home-manager cannot install — without it
-# hyprlock cannot authenticate the user.
+# home-manager cannot install the PAM entry; without it hyprlock cannot
+# authenticate.
 { ... }:
 {
   flake.modules.nixos.hyprlock = {
@@ -18,7 +15,6 @@
           ignore_empty_input = true;
         };
 
-        # Blurred snapshot of the current screen as the lock backdrop.
         background = [
           {
             path = "screenshot";

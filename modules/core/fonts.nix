@@ -1,4 +1,3 @@
-# The "fonts" aspect: fonts available system-wide.
 { ... }:
 {
   flake.modules.nixos.fonts =

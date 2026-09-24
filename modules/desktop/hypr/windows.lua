@@ -1,6 +1,3 @@
--- Window rules.
-
--- Fix some dragging issues with XWayland.
 hl.window_rule({
     name  = "fix-xwayland-drags",
     match = {

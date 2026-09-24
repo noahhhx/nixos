@@ -1,7 +1,3 @@
-# The "user" aspect: the primary interactive user account — the single
-# place the username is defined on the NixOS side (keep in sync with
-# `home-manager.users.<name>` in modules/hosts/; everything else derives
-# it from here).
 { ... }:
 {
   flake.modules.nixos.user = {
@@ -9,11 +5,10 @@
       isNormalUser = true;
       description = "Noah";
       extraGroups = [
-        "wheel" # sudo
-        "video" # backlight / video devices
-        "input" # input devices (e.g. for tools reading libinput)
+        "wheel"
+        "video"
+        "input"
       ];
-      # Placeholder so greetd login works out of the box; change with `passwd`.
       initialPassword = "nixos";
     };
   };

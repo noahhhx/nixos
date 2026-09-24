@@ -1,4 +1,3 @@
-# The "librewolf" aspect: web browser.
 { ... }:
 {
   flake.modules.homeManager.librewolf =
@@ -6,9 +5,6 @@
     {
       home.packages = [ pkgs.librewolf ];
 
-      # Default web handler: `xdg-open` on links and HTML files goes to
-      # LibreWolf (without this, a fresh profile has no default browser,
-      # so xdg-open fails or picks something arbitrary).
       xdg.mimeApps = {
         enable = true;
         defaultApplications = {

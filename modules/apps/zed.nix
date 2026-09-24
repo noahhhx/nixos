@@ -1,4 +1,3 @@
-# The "zed" aspect: text editor.
 { ... }:
 {
   flake.modules.homeManager.zed =

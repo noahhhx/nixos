@@ -1,10 +1,3 @@
-# Hosts: the registry that turns aspects into complete NixOS configurations.
-#
-# The top-level `hosts` option is the single registry of host modules; any
-# other module can read it (e.g. verification.nix builds a VM test for every
-# entry) or add entries (modules/hosts/<name>.nix, one file per machine).
-# Values are `deferredModule`s, so multiple files can contribute to the same
-# host.
 {
   config,
   inputs,

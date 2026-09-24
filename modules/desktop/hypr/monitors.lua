@@ -1,6 +1,4 @@
--- Monitor setup. An empty output name matches every connected output;
--- "preferred"/"auto" let Hyprland pick the mode, position and scale.
--- List current monitors and their modes: hyprctl monitors
+-- An empty output name matches every connected output.
 hl.monitor({
     output   = "",
     mode     = "preferred",
