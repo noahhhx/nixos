@@ -1,6 +1,8 @@
-{ inputs, ... }:
+{ config, inputs, ... }:
 {
   flake.modules.nixos.base = {
+    imports = [ config.flake.modules.nixos.boot ];
+
     nix.settings = {
       experimental-features = [
         "nix-command"
