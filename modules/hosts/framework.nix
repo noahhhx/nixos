@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, ... }:
 let
   inherit (config.flake.modules) nixos homeManager;
 in
@@ -12,6 +12,7 @@ in
       nixos.mullvad
       nixos.docker
       nixos.secrets
+      ./_facts/framework.nix
     ];
 
     home-manager.users.noah = {
@@ -22,14 +23,5 @@ in
     networking.hostName = "framework";
     nixpkgs.hostPlatform = "x86_64-linux";
     system.stateVersion = "26.05";
-
-    boot.loader.grub = {
-      enable = lib.mkDefault true;
-      device = lib.mkDefault "/dev/vda";
-    };
-    fileSystems."/" = lib.mkDefault {
-      device = "/dev/vda";
-      fsType = "ext4";
-    };
   };
 }

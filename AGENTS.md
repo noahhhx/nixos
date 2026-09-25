@@ -21,7 +21,7 @@ modules/
   desktop/     # the graphical session: default.nix (the "desktop" bundle aspect) + hyprland, hypridle, hyprlock, hyprpaper, walker, waybar, kitty
   apps/        # standalone applications: git, zed, librewolf, dolphin
   hardware/    # hardware enablement: framework, audio
-  hosts/       # one file per machine: composes aspects into hosts.<name>
+  hosts/       # one file per machine: composes aspects into hosts.<name> (+ _facts/: per-install disk facts, see rule 8)
 ```
 
 Bundle aspects (like `desktop`) compose other aspects so hosts stay short; a host imports `[ desktop audio framework ]` rather than a dozen sub-aspects.
@@ -31,11 +31,11 @@ Bundle aspects (like `desktop`) compose other aspects so hosts stay short; a hos
 1. **Uniform module class** — every non-entry-point `.nix` file is a top-level (flake-parts) module of the same class.
 2. **Feature-centric naming** — name files/directories after the feature (aspect) they implement, not after hosts, users, or configuration classes. Organize by *what* is configured, not *where*.
 3. **Cross-class co-location** — all configuration for a feature, across every class it touches, lives in that one file (or its directory subtree). Never split a feature into `nixos/foo.nix` and `homeManager/foo.nix`.
-4. **No manual imports of siblings** — never reference sibling modules by relative path in `imports`. Auto-import handles it. External flake inputs may be imported.
+4. **No manual imports of siblings** — never reference sibling modules by relative path in `imports`. Auto-import handles it. External flake inputs may be imported. The single exception: a host file imports its own install-facts file, `./_facts/<name>.nix` — a plain NixOS data module (not an aspect), deliberately kept out of auto-import via the `/_` prefix.
 5. **No `specialArgs` / `extraSpecialArgs`** — share values between classes via file-scoped `let` bindings or top-level flake-parts options, not by injecting module arguments.
 6. **Prefer `mkEnableOption`-style gating** — modules are imported but features are opted into; don't enable everything by default.
 7. **Declare inputs where used** — flake inputs needed by a feature are declared in that feature's module (via `vic/flake-file`), keeping `flake.nix` minimal.
-8. **No speculative hardware facts** — board enablement (drivers, firmware, quirks; e.g. `modules/hardware/framework.nix`) describes what a machine *is* and may be written ahead of a real machine. Install-specific disk facts (partitioning, UUIDs, LUKS, swap layout, real bootloader) describe what an install *created* and must come from an actual install — the installer-generated `hardware-configuration.nix`, a [disko](https://github.com/nix-community/disko) declaration applied at install time, or [nixos-facter](https://github.com/nix-community/nixos-facter). Never invent them or copy them from a previous OS. Until a real install exists, hosts carry the `mkDefault` placeholder disk config (see `modules/hosts/default.nix`).
+8. **No speculative hardware facts** — board enablement (drivers, firmware, quirks; e.g. `modules/hardware/framework.nix`) describes what a machine *is* and may be written ahead of a real machine. Install-specific disk facts (partitioning, UUIDs, LUKS, swap layout, real bootloader) describe what an install *created* and must come from an actual install — the installer-generated `hardware-configuration.nix`, a [disko](https://github.com/nix-community/disko) declaration applied at install time, or [nixos-facter](https://github.com/nix-community/nixos-facter). Never invent them or copy them from a previous OS. Until a real install exists, the host's `modules/hosts/_facts/<name>.nix` (a plain NixOS module excluded from auto-import by its `/_` path and imported by its host file) carries the `mkDefault` placeholder disk config; on the new machine, `./scripts/install.sh <name>` overwrites it verbatim with the installer-generated `/etc/nixos/hardware-configuration.nix` (see README.md).
 
 ## Canonical example
 
@@ -63,6 +63,7 @@ in {
 - Eval-only check: `nix flake check --no-build`
 - Boot a host in an interactive QEMU VM: `nix run .#vm-<host>`
 - Switch (on the target host): `sudo nixos-rebuild switch --flake .#<host>`
+- Adopt a fresh install (on the target host): `./scripts/install.sh <host>` — copies the installer's `hardware-configuration.nix` into `modules/hosts/_facts/<host>.nix`, commits, switches
 
 After any change, run `./scripts/verify.sh` (the `fmt` tier enforces canonical formatting); ensure verification passes before finishing.
 

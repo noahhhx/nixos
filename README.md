@@ -22,18 +22,18 @@ VM tests use the exact same host config as the real machines — if it boots in 
 
 ## Fresh install → this config
 
+Each host's install-specific disk facts (partitioning, UUIDs, LUKS, bootloader) live in `modules/hosts/_facts/<host>.nix` — a placeholder until a real install overwrites it.
+
 1. Install NixOS with the graphical ISO (defaults are fine; enable LUKS on a real laptop).
-2. Get the repo on the new machine:
+2. Get the repo on the new machine and adopt it:
    ```console
    $ nix-shell -p git
-   $ git clone <repo-url> ~/dev/nixos
+   $ git clone git@github.com:noahhhx/nixos.git ~/dev/nixos
    $ cd ~/dev/nixos
+   $ ./scripts/install.sh framework
    ```
-3. Copy the real disk/boot config from `/etc/nixos/hardware-configuration.nix` into `modules/hosts/framework.nix` (replacing the placeholder), then commit — nix only sees git-tracked files.
-4. Switch:
-   ```console
-   $ sudo nixos-rebuild switch --flake ~/dev/nixos#framework
-   ```
+
+`install.sh` copies `/etc/nixos/hardware-configuration.nix` **verbatim** to `modules/hosts/_facts/framework.nix` (no editing, no merging), formats and commits it, then switches to the `framework` host output. Flakes are enabled per-invocation via `NIX_CONFIG`, so the fresh install needs no configuration changes. The commit is local — push it from a machine with your git credentials.
 
 ## Updates
 
