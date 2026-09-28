@@ -17,6 +17,7 @@ in
       devenv
       intellij
       zsh
+      zed
     ];
   };
 

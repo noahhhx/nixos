@@ -144,6 +144,8 @@ in
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nvim")
 
                   machine.succeed("grep -q zeditor /etc/set-environment")
+                  # zed aspect: the `zeditor` binary is aliased as `zed` for shells.
+                  machine.succeed("zsh -ic 'alias zed' | grep -q zeditor")
 
                   machine.wait_for_unit("nix-gc.timer")
 
