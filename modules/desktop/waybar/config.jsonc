@@ -68,12 +68,11 @@
     "tooltip-format-ethernet": "⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
-    "spacing": 1
+    "spacing": 1,
+    "on-click": "kitty --single-instance --listen-on unix:@kitty nmtui"
   },
   "battery": {
     "format": "{capacity}% {icon}",
-    "format-discharging": "{icon}",
-    "format-charging": "{icon}",
     "format-plugged": "",
     "format-icons": {
       "charging": [
