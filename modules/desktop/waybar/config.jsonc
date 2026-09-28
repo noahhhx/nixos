@@ -69,7 +69,7 @@
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
     "spacing": 1,
-    "on-click": "kitty --single-instance --listen-on unix:@kitty nmtui"
+    "on-click": "kitty --single-instance --listen-on unix:@kitty wlctl"
   },
   "battery": {
     "format": "{capacity}% {icon}",
