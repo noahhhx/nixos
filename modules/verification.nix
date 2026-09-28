@@ -98,11 +98,19 @@ in
                   machine.succeed(
                     "test -f /run/current-system/sw/share/systemd/user/wayland-session-bindpid@.service"
                   )
-                  # uwsm fills XDG_CURRENT_DESKTOP from the binary basename
-                  # unless overridden; Hyprland warns unless it is "Hyprland".
+                  # regreet aspect: greetd runs the regreet greeter inside cage,
+                  # and the session regreet launches is hyprland's uwsm-managed
+                  # desktop entry, whose Exec carries the same uwsm start
+                  # command that tuigreet's --cmd used to spell out directly.
                   machine.succeed(
                     "systemctl cat greetd.service | grep -oP '(?<=--config )\S+'"
-                    + " | head -1 | xargs grep -q 'uwsm start -e -D Hyprland -- start-hyprland'"
+                    + " | head -1 | xargs grep -q cage"
+                  )
+                  machine.succeed("test -f /etc/greetd/regreet.toml")
+                  machine.succeed("test -f /etc/greetd/regreet.css")
+                  machine.succeed(
+                    "grep -q 'uwsm start -e -D Hyprland' "
+                    + "/run/current-system/sw/share/wayland-sessions/hyprland-uwsm.desktop"
                   )
 
                   # These only run once a Wayland session exists, which the

@@ -13,6 +13,7 @@ in
       hyprland
       hyprlock
       keyring
+      regreet
       user
       devenv
       intellij
