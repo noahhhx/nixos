@@ -12,6 +12,7 @@ in
       home-manager
       hyprland
       hyprlock
+      keyring
       user
       devenv
       intellij

@@ -156,6 +156,14 @@ in
                     "test -f /run/current-system/sw/share/systemd/user/gvfs-daemon.service"
                   )
 
+                  # keyring aspect: a D-Bus secrets provider (libsecret clients like
+                  # GitHub Desktop's keytar persist credentials through it) and
+                  # pam_gnome_keyring in greetd's stack to unlock it at login.
+                  machine.succeed(
+                    "test -f /run/current-system/sw/share/dbus-1/services/org.freedesktop.secrets.service"
+                  )
+                  machine.succeed("grep -q gnome_keyring /etc/pam.d/greetd")
+
                   # D-Bus-activated; assert the unit is installed rather than started.
                   ${
                     if hasPPD then
