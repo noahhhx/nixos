@@ -123,6 +123,21 @@ in
                   machine.succeed("grep -q gtk /etc/xdg/xdg-desktop-portal/portals.conf")
                   machine.succeed("test -x /run/current-system/sw/bin/brightnessctl")
 
+                  # theme aspect: a dark GTK theme is configured so the portal's
+                  # Settings interface reports prefer-dark instead of no-preference.
+                  machine.succeed(
+                    "grep -q adw-gtk3-dark /home/${primaryUser}/.config/gtk-3.0/settings.ini"
+                  )
+                  machine.succeed(
+                    "grep -q gtk-application-prefer-dark-theme=true /home/${primaryUser}/.config/gtk-3.0/settings.ini"
+                  )
+                  machine.succeed(
+                    "grep -q gtk-application-prefer-dark-theme=true /home/${primaryUser}/.config/gtk-4.0/settings.ini"
+                  )
+                  machine.succeed(
+                    "test -d /etc/profiles/per-user/${primaryUser}/share/themes/adw-gtk3-dark"
+                  )
+
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/hyprshot")
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/fastfetch")
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nano")

@@ -32,6 +32,7 @@ in
       walker
       waybar
       kitty
+      theme
       git
       zed
       intellij
