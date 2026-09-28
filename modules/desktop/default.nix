@@ -34,6 +34,7 @@ in
       waybar
       kitty
       theme
+      cursor
       git
       zed
       intellij
