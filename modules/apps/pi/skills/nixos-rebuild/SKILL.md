@@ -24,8 +24,11 @@ live in `modules/<domain>/<feature>.nix`, and hosts are composed in
 
 ## Pi configuration
 
-The `pi` CLI, its global `AGENTS.md`, skills (`modules/apps/pi/skills/<name>/`),
-and extensions (`modules/apps/pi/extensions/`) are managed by the same repo via
-home-manager symlinks into `~/.pi/agent/` — don't edit files under `~/.pi/`
-directly (except `settings.json`, `auth.json`, and sessions, which pi owns);
-change the repo and rebuild.
+The `pi` CLI, the machine-specific instructions
+(`modules/apps/pi/machine.md`) and skills (`modules/apps/pi/skills/<name>/`)
+are managed by this repo; the portable setup (the global `AGENTS.md` base,
+skills, extensions incl. pi-fff) by the `pi-shop` flake input
+(`github:noahhhx/pi-shop`, locally `~/pi-shop`). Both land in `~/.pi/agent/`
+via home-manager symlinks — don't edit files under `~/.pi/` directly (except
+`settings.json`, `auth.json`, and sessions, which pi owns); change the
+corresponding repo and rebuild.

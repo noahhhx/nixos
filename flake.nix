@@ -18,6 +18,13 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware";
 
+    # pi agent setup: the global AGENTS.md base, skills, and extensions
+    # (incl. pi-fff packaging).
+    pi-shop = {
+      url = "github:noahhhx/pi-shop";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # nixpkgs only ships wlrctl, a different tool.
     wlctl = {
       url = "github:aashish-thapa/wlctl";
