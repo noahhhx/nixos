@@ -123,6 +123,14 @@ in
                   # mako is D-Bus-activated on the first notification of a real session.
                   machine.succeed("test -f /home/${primaryUser}/.config/mako/config")
 
+                  # swayosd aspect: the OSD server ships as a session user service
+                  # and the media-key bindings call its client.
+                  machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/swayosd.service")
+                  machine.succeed("grep -q show_percentage /home/${primaryUser}/.config/swayosd/config.toml")
+                  machine.succeed("test -f /home/${primaryUser}/.config/swayosd/style.css")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/swayosd-client")
+                  machine.succeed("grep -q swayosd-client /home/${primaryUser}/.config/hypr/bindings.lua")
+
                   machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpolkitagent.service")
 
                   # The hyprland portal's daemon lives in libexec, not on PATH.

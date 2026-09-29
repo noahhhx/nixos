@@ -32,6 +32,7 @@ in
       hyprpolkitagent
       hyprshot
       mako
+      swayosd
       walker
       waybar
       kitty
