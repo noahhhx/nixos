@@ -38,3 +38,15 @@ hl.window_rule({
     size   = "900 600",
     center = true,
 })
+
+-- The clock's calendar drops down beneath it: horizontally centred like the
+-- clock, and 36px from the top (the 26px bar plus the 10px outer gap), level
+-- with the tiled windows. The script centres its grid inside the window.
+hl.window_rule({
+    name  = "waybar-calendar",
+    match = { class = "^waybar-calendar$" },
+
+    float = true,
+    size  = "240 200",
+    move  = "monitor_w*0.5-window_w*0.5 36",
+})

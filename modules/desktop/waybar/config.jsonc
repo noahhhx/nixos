@@ -49,7 +49,7 @@
   },
   "clock": {
     "format": "{:L%A %H:%M}",
-    "format-alt": "{:L%d %B W%V %Y}",
+    "on-click": "pkill -x waybar-calendar || kitty --single-instance --listen-on unix:@kitty --class waybar-calendar waybar-calendar",
     "tooltip": false
   },
   "network": {

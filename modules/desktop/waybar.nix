@@ -18,6 +18,15 @@
         });
       };
 
+      # The clock's click popup (config.jsonc); a floating kitty window placed
+      # under the bar by the waybar-calendar rule in ../hypr/windows.lua.
+      home.packages = [
+        (pkgs.writeShellApplication {
+          name = "waybar-calendar";
+          text = builtins.readFile ./waybar/calendar.sh;
+        })
+      ];
+
       xdg.configFile = {
         "waybar/config.jsonc".source = ./waybar/config.jsonc;
         "waybar/style.css".source = ./waybar/style.css;
