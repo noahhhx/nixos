@@ -92,7 +92,7 @@
         # The same cursor as the session (the "cursor" aspect).
         cursorTheme = {
           package = pkgs.vanilla-dmz;
-          name = "Vanilla-DMZ";
+          name = "DMZ-Black";
         };
 
         # The rice itself, layered on top of the Adwaita-dark GTK theme.
