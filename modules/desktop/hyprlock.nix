@@ -128,8 +128,8 @@
             dots_size = 0.25;
             dots_spacing = 0.3;
             fade_on_empty = false;
-            placeholder_text = "'<span foreground=\"##585b70\">Password...</span>'";
-            fail_text = "'<span foreground=\"##f38ba8\">󰅙  Incorrect</span>'";
+            placeholder_text = "<span foreground=\"##585b70\">Password...</span>";
+            fail_text = "<span foreground=\"##f38ba8\">󰅙  Incorrect</span>";
           }
         ];
       };
