@@ -44,7 +44,7 @@
   },
   "cpu": {
     "interval": 5,
-    "on-click": "kitty --single-instance --listen-on unix:@kitty btop",
+    "on-click": "kitty --single-instance --listen-on unix:@kitty --class btop btop",
     "format": "󰍛"
   },
   "clock": {
@@ -69,7 +69,7 @@
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
     "spacing": 1,
-    "on-click": "kitty --single-instance --listen-on unix:@kitty wlctl"
+    "on-click": "kitty --single-instance --listen-on unix:@kitty --class wlctl wlctl"
   },
   "battery": {
     "format": "{capacity}% {icon}",
@@ -114,10 +114,11 @@
     "format-disabled": "󰂲",
     "format-connected": "",
     "tooltip-format": "Devices connected: {num_connections}",
-    "on-click": "kitty --single-instance --listen-on unix:@kitty bluetui"
+    "on-click": "kitty --single-instance --listen-on unix:@kitty --class bluetui bluetui"
   },
   "pulseaudio": {
     "format": "{icon}",
+    "on-click": "kitty --single-instance --listen-on unix:@kitty --class wiremix wiremix",
     "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "tooltip-format": "Playing at {volume}%",
     "scroll-step": 5,

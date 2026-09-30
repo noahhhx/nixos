@@ -51,6 +51,7 @@ in
       moonlight
       bluetui
       wlctl
+      wiremix
       ssh
       github-desktop
       lazydocker

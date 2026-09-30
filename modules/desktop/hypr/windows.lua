@@ -25,3 +25,16 @@ hl.window_rule({
 
     no_focus = true,
 })
+
+-- The TUIs behind the waybar icons (wiremix: audio, bluetui: bluetooth,
+-- wlctl: wifi, btop: cpu) open as centred popups. The waybar clicks launch
+-- each with `kitty --class <tool>`, which the single kitty instance honours
+-- per window.
+hl.window_rule({
+    name  = "waybar-tui-float",
+    match = { class = "^(wiremix|bluetui|wlctl|btop)$" },
+
+    float  = true,
+    size   = "900 600",
+    center = true,
+})
