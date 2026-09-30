@@ -9,7 +9,7 @@ hl.config({
         touchpad = {
             natural_scroll       = true,
             scroll_factor        = 0.4,
-            clickfinger_behavior = true,
+            clickfinger_behavior = false, -- button areas: bottom-right corner = right click
         },
     },
 })
