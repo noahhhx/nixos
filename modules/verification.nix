@@ -130,6 +130,8 @@ in
                   machine.succeed("test -f /home/${primaryUser}/.config/swayosd/style.css")
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/swayosd-client")
                   machine.succeed("grep -q swayosd-client /home/${primaryUser}/.config/hypr/bindings.lua")
+                  machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/swayosd-brightness")
+                  machine.succeed("grep -q swayosd-brightness /home/${primaryUser}/.config/hypr/bindings.lua")
 
                   machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpolkitagent.service")
 

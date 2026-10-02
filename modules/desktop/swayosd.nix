@@ -4,15 +4,28 @@
 # session (like waybar and hyprpaper). The Hyprland media-key bindings
 # (modules/desktop/hypr/bindings.lua) call swayosd-client, which talks to
 # the server over D-Bus, changes the default sink's volume (through
-# PipeWire/Pulse) or the backlight (through sysfs/brightnessctl), and pops
-# up a progress-bar OSD. Backlight write access comes from brightnessctl's
+# PipeWire/Pulse), and pops up a progress-bar OSD. The brightness keys call
+# swayosd-brightness instead, which sets the backlight with brightnessctl
+# itself and only asks the server to draw the bar (swayosd/brightness.sh
+# says why). Backlight write access comes from brightnessctl's
 # udev rules, which the hyprland aspect already installs.
 { ... }:
 {
   flake.modules.homeManager.swayosd =
     { pkgs, ... }:
     {
-      home.packages = [ pkgs.swayosd ];
+      home.packages = [
+        pkgs.swayosd
+        # The brightness keys' handler; see the comment in the script.
+        (pkgs.writeShellApplication {
+          name = "swayosd-brightness";
+          runtimeInputs = [
+            pkgs.brightnessctl
+            pkgs.swayosd
+          ];
+          text = builtins.readFile ./swayosd/brightness.sh;
+        })
+      ];
 
       xdg.configFile = {
         # swayosd would otherwise allow raising volume up to its 150%
