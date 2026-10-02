@@ -31,6 +31,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # agent-aware terminal multiplexer; not in nixpkgs.
+    herdr = {
+      url = "github:herdrdev/herdr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # walker 2.x needs the elephant provider daemon; nixpkgs' elephant ships
     # without providers.
     elephant = {

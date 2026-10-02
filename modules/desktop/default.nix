@@ -55,6 +55,7 @@ in
       ssh
       github-desktop
       lazydocker
+      herdr
     ];
   };
 }
