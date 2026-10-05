@@ -2,10 +2,10 @@
 #
 # Tiered verification for this NixOS flake.
 #
-# Usable from ANY machine — including one that does not run the OS this repo
-# installs. Requirements: either `nix` on PATH, or Docker (the script then
-# runs all tiers inside a persistent nixos/nix container; the container and
-# its nix store are reused across runs, so only the first run is slow).
+# Runs on any machine, including one that does not run NixOS. It needs `nix`
+# on PATH or a running Docker. Without nix, it runs every tier inside a
+# persistent nixos/nix container. Later runs reuse the container and its nix
+# store, so only the first run is slow.
 #
 # Usage:
 #   ./scripts/verify.sh                quick preset (default): fmt + eval
@@ -19,8 +19,8 @@
 #   fmt    all .nix files are canonically formatted (nixfmt-rfc-style)
 #   eval   the whole flake evaluates (nix flake check --no-build)
 #   build  every host's system closure builds (checks.<sys>.toplevel-<host>)
-#   vm     every host boots to multi-user.target in a headless QEMU VM
-#          (checks.<sys>.vm-test-<host>; building the check runs the test)
+#   vm     every host boots and starts its services in a headless QEMU VM
+#          (checks.<sys>.vm-test-<host>. Building the check runs the test.)
 #
 # Environment overrides:
 #   VERIFY_IMAGE      docker image to use            (default: nixos/nix)
@@ -79,11 +79,11 @@ if [ "$MODE" = "docker" ]; then
   DOCKER=1
 elif ! have_nix; then
   have_docker || die "neither nix nor docker is available; install one of them"
-  say "nix not found on PATH — using the Docker fallback"
+  say "nix is not on PATH, so using the Docker fallback"
   DOCKER=1
 fi
 if (( DOCKER )) && ! have_docker; then
-  die "docker requested but not available/running"
+  die "--docker was given, but docker is not installed or not running"
 fi
 
 ensure_container() {
@@ -113,22 +113,22 @@ run() {
 
 ensure_lock() {
   if [ ! -e flake.lock ]; then
-    say "no flake.lock — creating one (commit it)"
+    say "no flake.lock, so creating one. Commit it."
     run nix flake lock
   fi
 }
 
 check_untracked() {
   run git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
-    warn "not a git work tree — nix may not see all files"
+    warn "not a git work tree. Nix may not see every file."
     return 0
   }
   local untracked
   untracked="$(run git ls-files --others --exclude-standard -- '*.nix' || true)"
   if [ -n "$untracked" ]; then
-    die "untracked .nix files are INVISIBLE to the flake (nix only sees git-tracked files):
+    die "nix sees only files that git tracks, so it ignores these untracked .nix files:
 $untracked
-Fix: git add -A, then re-run ./scripts/verify.sh"
+To fix this, run git add -A, then run ./scripts/verify.sh again."
   fi
 }
 
@@ -154,7 +154,7 @@ tier_fmt() {
     if run nix fmt -- --check $files; then
       pass "formatting ok (nixfmt-rfc-style)"
     else
-      die "formatting mismatch — fix with: ./scripts/verify.sh --fix fmt"
+      die "some files are not formatted. To fix them, run ./scripts/verify.sh --fix fmt"
     fi
   fi
 }
@@ -188,14 +188,14 @@ tier_vm() {
   ensure_lock
   check_untracked
   if [ ! -e /dev/kvm ]; then
-    warn "/dev/kvm not found — VM tests run under slow TCG emulation (still valid, just slow)"
+    warn "no /dev/kvm, so VM tests use TCG software emulation. The results are still valid, but slower."
   fi
   local systems hosts h s
   hosts="$(list_hosts)"
   systems="$(list_check_systems)"
   for s in $systems; do
     for h in $hosts; do
-      say "vm-test: host '$h' ($s) — headless QEMU boot, asserts multi-user.target"
+      say "vm-test: booting host '$h' ($s) in headless QEMU"
       if (( DOCKER )); then
         run nix build --no-link --print-out-paths ".#checks.$s.vm-test-$h"
       else
@@ -203,7 +203,7 @@ tier_vm() {
 }system-features = kvm nixos-test big-parallel" \
           nix build --no-link --print-out-paths ".#checks.$s.vm-test-$h"
       fi
-      pass "vm-test: host '$h' boots and reaches multi-user.target"
+      pass "vm-test: host '$h' booted and passed its checks"
     done
   done
 }

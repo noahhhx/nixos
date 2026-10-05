@@ -1,21 +1,12 @@
 ## Environment
 
-- NixOS on a Framework Laptop 13 (AMD Ryzen AI 9 HX 370, x86_64, Zen 5
-  cores + Radeon 890M iGPU, 12C/24T). All software is managed by Nix — never
-  install packages with curl/pip/npm into the system; system changes go
-  through the flake repo at `~/nixos`.
-- The OS configuration, home-manager config, the `pi` CLI itself, and these
-  machine-specific instructions and skills are versioned in `~/nixos` (see
-  `modules/apps/pi/` there); the portable agent setup (the global AGENTS.md
-  base, skills, extensions incl. pi-fff) comes from the `pi-shop` repository,
-  consumed as a flake input.
-- zsh + carapace; editors: Zed, IntelliJ.
-- Secrets are sops-encrypted; never write plaintext credentials into the repo
-  or into command histories.
+- This machine runs NixOS on a Framework Laptop 13 with an AMD Ryzen AI 9 HX 370 (x86_64, 4 Zen 5 and 8 Zen 5c cores, 24 threads) and a Radeon 890M iGPU.
+- Nix manages all software. Never install packages into the system with curl, pip, or npm. Make system changes in the flake repo at `~/nixos`.
+- `~/nixos` versions the OS configuration, the home-manager configuration, the `pi` CLI, and these machine-specific instructions and skills. The instructions and skills live in `modules/apps/pi/` in that repo.
+- The portable agent setup comes from the `pi-shop` repository, which `~/nixos` uses as a flake input. It provides the global AGENTS.md base, skills, and extensions such as pi-fff.
+- The shell is zsh with carapace completions. The editors are Zed and IntelliJ.
+- Secrets are sops-encrypted. Never write plaintext credentials into the repo or into a command history.
 
-## Working on the system
+## Change the system
 
-For any task that changes system configuration (or asks to rebuild/switch),
-use the `nixos-rebuild` skill: it covers the repo layout, verification tiers,
-and the switch commands. Read `~/nixos/AGENTS.md` before editing anything in
-that repo.
+To change the system configuration, or to rebuild or switch, use the `nixos-rebuild` skill. It covers the repo layout, the verification tiers, and the switch commands. Read `~/nixos/AGENTS.md` before you edit anything in that repo.

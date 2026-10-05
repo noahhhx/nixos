@@ -82,11 +82,12 @@
   flake.modules.nixos.zsh =
     { pkgs, ... }:
     {
-      # nixpkgs stores login shells in /etc/passwd as /run/current-system/sw/bin/zsh
-      # (lib.toShellPath), and programs.zsh installs plain pkgs.zsh there; in
-      # a buildEnv the first package wins a collision, so the wrapper must come
-      # first or every terminal execs plain zsh with no ZDOTDIR
-      # (zsh-newuser-install: "no zsh startup files").
+      # nixpkgs writes the login shell to /etc/passwd as
+      # /run/current-system/sw/bin/zsh (lib.toShellPath), and programs.zsh
+      # installs plain pkgs.zsh at that path. In a buildEnv, the first package
+      # wins a collision, so the wrapper must come first. Otherwise every
+      # terminal runs plain zsh with no ZDOTDIR, and zsh-newuser-install
+      # reports "no zsh startup files".
       environment.systemPackages = lib.mkBefore [ self.packages.${pkgs.system}.zsh ];
 
       programs.zsh = {

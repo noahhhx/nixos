@@ -12,9 +12,9 @@ facts="modules/hosts/_facts/${host}.nix"
 hw="/etc/nixos/hardware-configuration.nix"
 
 [ -f "$facts" ] || die "unknown host '$host': no $facts in this repo"
-[ -r "$hw" ] || die "cannot read $hw — run this on the machine you just installed"
-command -v git >/dev/null 2>&1 || die "git not found — on a bare install run: nix-shell -p git"
-git config user.email >/dev/null 2>&1 || die "git identity not set — run: git config --global user.email <you> && git config --global user.name <you>"
+[ -r "$hw" ] || die "cannot read $hw. Run this script on the machine you just installed."
+command -v git >/dev/null 2>&1 || die "git is not installed. On a fresh install, run: nix-shell -p git"
+git config user.email >/dev/null 2>&1 || die "git has no user identity. Run: git config --global user.email <you> && git config --global user.name <you>"
 
 export NIX_CONFIG="experimental-features = nix-command flakes${NIX_CONFIG:+
 $NIX_CONFIG}"
@@ -24,8 +24,8 @@ cp "$hw" "$facts"
 nix fmt -- "$facts"
 git add "$facts"
 git commit -m "hosts/${host}: capture install facts from hardware-configuration.nix"
-say "committed $facts (push it from a machine with your git credentials)"
+say "committed $facts. Push it from a machine that has your git credentials."
 
 say "switching to flake output #${host}"
 sudo env NIX_CONFIG="$NIX_CONFIG" nixos-rebuild switch --flake "${REPO_ROOT}#${host}"
-say "done — future updates: git pull && sudo nixos-rebuild switch --flake ${REPO_ROOT}#${host}"
+say "done. To update later, run: git pull && sudo nixos-rebuild switch --flake ${REPO_ROOT}#${host}"

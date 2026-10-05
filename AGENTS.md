@@ -1,125 +1,134 @@
 # AGENTS.md
 
-This repository is a Nix configuration using the [Dendritic pattern](https://github.com/vic/dendritic): an aspect-oriented architecture where every Nix file is a module of a single top-level module evaluation (flake-parts), and each file implements one feature across all configuration classes it applies to.
+This repository is a Nix configuration built on the [Dendritic pattern](https://github.com/vic/dendritic). Every Nix file is a module of one top-level flake-parts evaluation, and each file implements one feature across all the configuration classes that feature touches.
 
 ## Architecture
 
-- `flake.nix` is the only entry point. It contains only: inputs, the `mkFlake` bootstrap, and a single auto-import expression (`vic/import-tree ./modules`). No feature logic, no host definitions.
-- Every other `.nix` file is a flake-parts module (a top-level module). A file is never "a NixOS module" or "a home-manager module" — it is always a top-level module that may *contribute* lower-level modules.
-- Files under `modules/` are auto-imported by `import-tree`. Any path containing `/_` is ignored (the convention for disabling a module).
-- Lower-level modules are stored via `flake.modules.<class>.<aspect>` (deferredModule merge semantics), where `<class>` is `nixos`, `homeManager`, `darwin`, etc. Multiple files may contribute to the same aspect name and merge.
-- Hosts are declared inside top-level modules by composing aspects. The `hosts` option (declared in `modules/hosts.nix`) is the registry; each machine adds an entry from its own file under `modules/hosts/`, e.g. `hosts.myhost = { imports = [ config.flake.modules.nixos.desktop ]; ... };`.
+- `flake.nix` is the only entry point. It holds the inputs and the `mkFlake` call, which imports `inputs.import-tree ./modules` and the flake-parts `modules` flake module. It holds no feature logic and no host definitions.
+- Every other `.nix` file is a flake-parts module, called a top-level module. A file is never "a NixOS module" or "a home-manager module". It is a top-level module that can *contribute* lower-level modules.
+- `import-tree` imports every file under `modules/`. It skips any path that contains `/_`. Use that prefix to disable a module or to keep a data file out of the evaluation.
+- Lower-level modules live in `flake.modules.<class>.<aspect>`, where `<class>` is `nixos`, `homeManager`, or another configuration class. These options are deferred modules, so several files can contribute to one aspect and their contributions merge.
+- A host is a set of aspects. `modules/hosts.nix` declares the `hosts` option, and each machine adds its entry from its own file under `modules/hosts/`, such as `hosts.myhost = { imports = [ config.flake.modules.nixos.desktop ]; };`.
 
 ## Layout
 
-`modules/` is grouped by *domain* (never by configuration class — no `nixos/` vs `homeManager/` split):
+`modules/` is grouped by *domain*, never by configuration class. There is no `nixos/` directory next to a `homeManager/` directory. The comments name a few files in each directory, not all of them:
 
 ```
 modules/
-  systems.nix  hosts.nix  verification.nix   # flake plumbing: platforms, host registry, checks
-  core/        # base, user, fonts, home, home-manager — aspects every host builds on
-  desktop/     # the graphical session: default.nix (the "desktop" bundle aspect) + hyprland, hypridle, hyprlock, hyprpaper, walker, waybar, kitty
-  apps/        # standalone applications: git, zed, librewolf, dolphin
-  hardware/    # hardware enablement: framework, audio
-  hosts/       # one file per machine: composes aspects into hosts.<name> (+ _facts/: per-install disk facts, see rule 8)
+  systems.nix  hosts.nix  verification.nix   # flake plumbing: platforms, the host registry, and checks
+  core/            # aspects every host builds on: base, boot, user, home-manager, secrets
+  desktop/         # the graphical session: default.nix (the "desktop" bundle aspect), hyprland, waybar, kitty
+  apps/            # standalone applications: git, zed, librewolf, zsh, pi
+  hardware/        # hardware enablement: framework, audio, eoscam
+  networking/      # network services: ssh, tailscale, mullvad
+  virtualisation/  # docker
+  hosts/           # one file per machine that sets hosts.<name>, plus _facts/ (per-install disk facts, see rule 8)
 ```
 
-Bundle aspects (like `desktop`) compose other aspects so hosts stay short; a host imports `[ desktop audio framework ]` rather than a dozen sub-aspects.
+A bundle aspect such as `desktop` imports other aspects, so a host imports `desktop` instead of a dozen session aspects.
 
 ## Rules
 
-1. **Uniform module class** — every non-entry-point `.nix` file is a top-level (flake-parts) module of the same class.
-2. **Feature-centric naming** — name files/directories after the feature (aspect) they implement, not after hosts, users, or configuration classes. Organize by *what* is configured, not *where*.
-3. **Cross-class co-location** — all configuration for a feature, across every class it touches, lives in that one file (or its directory subtree). Never split a feature into `nixos/foo.nix` and `homeManager/foo.nix`.
-4. **No manual imports of siblings** — never reference sibling modules by relative path in `imports`. Auto-import handles it. External flake inputs may be imported. The single exception: a host file imports its own install-facts file, `./_facts/<name>.nix` — a plain NixOS data module (not an aspect), deliberately kept out of auto-import via the `/_` prefix.
-5. **No `specialArgs` / `extraSpecialArgs`** — share values between classes via file-scoped `let` bindings or top-level flake-parts options, not by injecting module arguments.
-6. **Prefer `mkEnableOption`-style gating** — modules are imported but features are opted into; don't enable everything by default.
-7. **Declare inputs where used** — flake inputs needed by a feature are declared in that feature's module (via `vic/flake-file`), keeping `flake.nix` minimal.
-8. **No speculative hardware facts** — board enablement (drivers, firmware, quirks; e.g. `modules/hardware/framework.nix`) describes what a machine *is* and may be written ahead of a real machine. Install-specific disk facts (partitioning, UUIDs, LUKS, swap layout, real bootloader) describe what an install *created* and must come from an actual install — the installer-generated `hardware-configuration.nix`, a [disko](https://github.com/nix-community/disko) declaration applied at install time, or [nixos-facter](https://github.com/nix-community/nixos-facter). Never invent them or copy them from a previous OS. Until a real install exists, the host's `modules/hosts/_facts/<name>.nix` (a plain NixOS module excluded from auto-import by its `/_` path and imported by its host file) carries the `mkDefault` placeholder disk config; on the new machine, `./scripts/install.sh <name>` overwrites it verbatim with the installer-generated `/etc/nixos/hardware-configuration.nix` (see README.md).
+1. **Use one module class.** Every `.nix` file except `flake.nix` is a top-level flake-parts module.
+2. **Name files after features.** Name each file or directory after the aspect it implements, not after a host, a user, or a configuration class. Organize by *what* is configured, not *where*.
+3. **Keep a feature in one place.** All configuration for a feature, in every class it touches, lives in one file or one directory. Never split a feature into `nixos/foo.nix` and `homeManager/foo.nix`.
+4. **Never import siblings by path.** `import-tree` already imports every module, so no `imports` list names a sibling by relative path. Importing modules from flake inputs is fine. There is one exception. A host file imports its own install-facts file, `./_facts/<name>.nix`. That file is a plain NixOS data module, not an aspect, and its `/_` path keeps it out of `import-tree`.
+5. **Don't use `specialArgs` or `extraSpecialArgs`.** To share a value between classes, use a `let` binding in the file or a top-level flake-parts option.
+6. **Prefer `mkEnableOption`-style gating.** Modules are imported, but features are opted into. Don't enable everything by default.
+7. **Declare inputs where you use them.** A feature declares the flake inputs it needs in its own module through `vic/flake-file`, which keeps `flake.nix` small.
+8. **Never invent hardware facts.** Board enablement, such as the drivers, firmware, and quirks in `modules/hardware/framework.nix`, describes what a machine *is*. You can write it before the machine exists. Disk facts describe what an install *created*: partitioning, UUIDs, LUKS, swap layout, and the real bootloader. They must come from a real install, through the installer's `hardware-configuration.nix`, a [disko](https://github.com/nix-community/disko) declaration applied at install time, or [nixos-facter](https://github.com/nix-community/nixos-facter). Never invent disk facts or copy them from a previous OS. Until a real install exists, `modules/hosts/_facts/<name>.nix` holds placeholder disk config set with `mkDefault`. On the new machine, `./scripts/install.sh <name>` replaces that file with the installer's `/etc/nixos/hardware-configuration.nix`, unchanged. README.md has the steps.
 
 ## Canonical example
 
 ```nix
-# modules/ssh.nix -- a top-level module implementing the "ssh" aspect
-{ inputs, ... }: let
-  port = 2277; # shared across classes via let-binding
-in {
-  flake.modules.nixos.ssh = {
-    services.openssh = { enable = true; inherit port; };
+# A hypothetical modules/networking/sshd.nix that implements one aspect for two classes.
+let
+  port = 2277; # the let binding shares the port between both classes
+in
+{
+  flake.modules.nixos.sshd = {
+    services.openssh = {
+      enable = true;
+      ports = [ port ];
+    };
   };
 
-  flake.modules.homeManager.ssh = {
-    programs.ssh = { enable = true; extraConfig = "Port ${toString port}"; };
+  flake.modules.homeManager.sshd = {
+    programs.ssh = {
+      enable = true;
+      extraConfig = "Port ${toString port}";
+    };
   };
 }
 ```
 
 ## Commands
 
-- **Verify changes**: `./scripts/verify.sh` (quick: `fmt` + `eval`), `./scripts/verify.sh all` (`fmt` + `eval` + `build` + `vm`). Works with nix or docker on any machine — see the Verification system section below.
-- Format code: `./scripts/verify.sh --fix fmt` (canonical style: `nixfmt-rfc-style`).
-- Build/eval a host: `nix build .#nixosConfigurations.<host>.config.system.build.toplevel`
-- Full check incl. building every check and running the VM tests: `nix flake check` (on non-NixOS hosts this needs `system-features = kvm nixos-test big-parallel` in nix.conf — `./scripts/verify.sh` handles that for you)
-- Eval-only check: `nix flake check --no-build`
+- Verify a change: `./scripts/verify.sh` runs `fmt` and `eval`. `./scripts/verify.sh all` adds `build` and `vm`. Both work with nix or docker on any machine. See [Verification system](#verification-system).
+- Format code: `./scripts/verify.sh --fix fmt`. The canonical style is `nixfmt-rfc-style`.
+- Build a host: `nix build .#nixosConfigurations.<host>.config.system.build.toplevel`
+- Build every check and run the VM tests: `nix flake check`. On a host that is not NixOS, nix.conf needs `system-features = kvm nixos-test big-parallel`. `./scripts/verify.sh` sets that for you.
+- Evaluate without building: `nix flake check --no-build`
 - Boot a host in an interactive QEMU VM: `nix run .#vm-<host>`
-- Switch (on the target host): `sudo nixos-rebuild switch --flake .#<host>`
-- Adopt a fresh install (on the target host): `./scripts/install.sh <host>` — copies the installer's `hardware-configuration.nix` into `modules/hosts/_facts/<host>.nix`, commits, switches
+- Switch on the target host: `sudo nixos-rebuild switch --flake .#<host>`
+- Adopt a fresh install on the target host: `./scripts/install.sh <host>`. It copies the installer's `hardware-configuration.nix` to `modules/hosts/_facts/<host>.nix`, commits it, and switches.
 
-After any change, run `./scripts/verify.sh` (the `fmt` tier enforces canonical formatting); ensure verification passes before finishing.
+After any change, run `./scripts/verify.sh`, and finish only when it passes. The `fmt` tier enforces canonical formatting.
 
-**Important**: nix only sees files that are *tracked by git*. Run `git add -A` before verifying, otherwise new or renamed modules are silently ignored (the `eval`/`build`/`vm` tiers fail loudly if untracked `.nix` files exist).
+**Important**: nix sees only files that git tracks. Run `git add -A` before you verify. Otherwise nix ignores new and renamed modules without an error. The `eval`, `build`, and `vm` tiers fail if untracked `.nix` files exist.
 
 ## Verification system
 
-The repo has a tiered verification system usable from **any machine — including one that does not run the OS this repo installs**. Nothing requires root or NixOS; you need either `nix` on PATH, or `docker` (the runner falls back to a persistent `nixos/nix` container automatically).
+`./scripts/verify.sh` runs tiered checks from **any machine, including one that does not run NixOS**. It needs no root. It needs `nix` on PATH or a running `docker`. Without nix, the runner moves into a persistent `nixos/nix` container.
 
 ### Entry points
 
-- `./scripts/verify.sh [tiers...]` — the main runner. Presets: `quick` (the default: `fmt eval`) and `all` (`fmt eval build vm`). Individual tiers can be combined freely.
-- `./scripts/verify.sh --docker all` — force the Docker fallback.
-- `./scripts/verify.sh --fix fmt` — apply formatting instead of checking it.
-- `./scripts/verify.sh --clean` — remove the persistent verification container.
-- `nix run .#verify` — the same runner exposed as a flake app (requires nix).
-- `nix flake check` — CI-style: evaluates everything and *builds* every check, which includes running the VM tests (equivalent to the `all` preset, plus every other check).
+- `./scripts/verify.sh [tiers...]` runs the given tiers. Two presets exist: `quick` (`fmt eval`, the default) and `all` (`fmt eval build vm`). You can combine individual tiers freely.
+- `./scripts/verify.sh --docker all` forces the Docker fallback.
+- `./scripts/verify.sh --fix fmt` applies formatting instead of checking it.
+- `./scripts/verify.sh --clean` removes the persistent verification container.
+- `nix run .#verify` runs the same script as a flake app. It requires nix.
+- `nix flake check` evaluates everything and *builds* every check, which runs the VM tests. It covers the `all` preset plus every other check.
 
 ### Tiers
 
-| Tier  | What it proves                                             | How it runs                                                |
-| ----- | ---------------------------------------------------------- | ---------------------------------------------------------- |
-| `fmt`   | all `.nix` files are canonically formatted               | `nix fmt -- --check <files>` with `nixfmt-rfc-style`        |
-| `eval`  | the whole flake (all outputs, all hosts) evaluates       | `nix flake check --no-build`                                |
-| `build` | every host's full system closure builds                  | `nix build .#checks.<system>.toplevel-<host>`               |
-| `vm`    | every host boots to a working multi-user system in a VM  | `nix build .#checks.<system>.vm-test-<host>` — building this check **runs** a NixOS test that boots the host headless in QEMU and asserts `multi-user.target`, `nixos-version`, etc. |
+| Tier    | What it proves                                          | How it runs                                                  |
+| ------- | ------------------------------------------------------- | ------------------------------------------------------------ |
+| `fmt`   | every `.nix` file is canonically formatted              | `nix fmt -- --check <files>` with `nixfmt-rfc-style`         |
+| `eval`  | the whole flake evaluates, including every host         | `nix flake check --no-build`                                 |
+| `build` | every host's full system closure builds                 | `nix build .#checks.<system>.toplevel-<host>`                |
+| `vm`    | every host boots and starts its services in a VM        | `nix build .#checks.<system>.vm-test-<host>`. Building this check **runs** a NixOS test that boots the host headless in QEMU. The test asserts `multi-user.target`, the greeter, home-manager, and the services the host enables. |
 
-Tiers are cumulative: `eval` catches evaluation errors, `build` catches build failures, `vm` catches boot/runtime failures. Nothing here requires the target host's hardware — the VM tests compose the exact same host modules (`config.hosts`) that `nixosConfigurations` uses, with the NixOS test framework's VM plumbing layered on top.
+Each tier catches a later kind of failure: `eval` catches evaluation errors, `build` catches build failures, and `vm` catches boot and runtime failures. No tier needs the target host's hardware. The VM tests use the same host modules (`config.hosts`) as `nixosConfigurations` and add the NixOS test framework's VM config on top.
 
-### Docker fallback (no nix on the machine)
+### Docker fallback
 
-When `nix` is not on PATH, the runner creates a persistent privileged container (`nix-verify-<repo>`, image `nixos/nix`, override with `VERIFY_IMAGE`), mounts the repo at `/work`, and executes the tiers inside it with `docker exec`. The container — and its nix store — is reused across runs, so only the first run is slow. Details:
+When `nix` is not on PATH, the runner creates a persistent privileged container named `nix-verify-<repo>` from the `nixos/nix` image. Set `VERIFY_IMAGE` to use another image. The runner mounts the repo at `/work` and runs the tiers inside the container with `docker exec`. Later runs reuse the container and its nix store, so only the first run is slow.
 
-- `/dev/kvm` is passed through when available. Without it, VM tests fall back to slow software emulation (TCG) — they still pass, just slower.
-- The image ships `git`, which nix needs because the flake source is a git checkout.
-- The container sets `system-features = kvm nixos-test big-parallel` so NixOS test derivations can be built.
+- The runner passes `/dev/kvm` through when it exists. Without it, VM tests use software emulation (TCG). They still pass, but slower.
+- The image ships `git`. Nix needs it because the flake source is a git checkout.
+- The container sets `system-features = kvm nixos-test big-parallel`, which nix needs to build NixOS test derivations.
 
 ### Where it lives
 
-- `modules/verification.nix` — the flake-parts module exposing, per system:
-  - `formatter.<system>` — `nixfmt-rfc-style`
-  - `checks.<system>.toplevel-<host>` and `checks.<system>.vm-test-<host>` — one pair per entry in the top-level `hosts` option (declared in `modules/hosts.nix`; any module may read it or add hosts)
-  - `packages.<system>.vm-<host>` — interactive VM runner (`nix run .#vm-<host>`)
-  - `apps.<system>.verify` — wraps `scripts/verify.sh`
-- `scripts/verify.sh` — the tier runner and Docker fallback (plain bash; readable/runnable without nix).
+- `modules/verification.nix` is the flake-parts module that defines, per system:
+  - `formatter.<system>`: `nixfmt-rfc-style`
+  - `checks.<system>.toplevel-<host>` and `checks.<system>.vm-test-<host>`: one pair for each entry in the `hosts` option. `modules/hosts.nix` declares that option, and any module can read it or add hosts.
+  - `packages.<system>.vm-<host>`: an interactive VM runner (`nix run .#vm-<host>`)
+  - `apps.<system>.verify`: a wrapper around `scripts/verify.sh`
+- `scripts/verify.sh` is the tier runner and the Docker fallback. It is plain bash, so you can read and run it without nix.
 
-### Debugging a failing VM test
+### Debug a failing VM test
 
-- Interactive python driver (poke at the booted VM): `nix run .#checks.<system>.vm-test-<host>.driver.interactive`, then e.g. `machine.succeed("systemctl status <unit>")`.
-- Plain interactive VM with a console: `nix run .#vm-<host>`.
-- Build logs: `nix build -L .#checks.<system>.vm-test-<host>`.
+- To run commands in the booted VM, start the interactive Python driver with `nix run .#checks.<system>.vm-test-<host>.driver.interactive`. Then call, for example, `machine.succeed("systemctl status <unit>")`.
+- To get a plain VM with a console, run `nix run .#vm-<host>`.
+- To see the build logs, run `nix build -L .#checks.<system>.vm-test-<host>`.
 
 ### Rules for agents
 
-1. After **any** change: `git add -A`, then run `./scripts/verify.sh` (quick). Never report work as done while verification fails.
-2. Before finishing: run `./scripts/verify.sh all`. At minimum `eval` + `build`; always include `vm` for changes affecting boot, filesystems, or enabled services.
-3. If the `fmt` tier fails: `./scripts/verify.sh --fix fmt`, re-run verification.
-4. When adding features that should be asserted at boot, extend the test script in `modules/verification.nix` (e.g. `machine.wait_for_unit("<service>.service")`).
-5. New hosts: add a `modules/hosts/<name>.nix` file setting `hosts.<name>` — it automatically gains `toplevel-*` and `vm-test-*` checks and a `vm-<host>` package.
+1. After **any** change, run `git add -A`, then `./scripts/verify.sh`. Never report work as done while verification fails.
+2. Before you finish, run `./scripts/verify.sh all`. At minimum, run `eval` and `build`. If a change affects boot, filesystems, or enabled services, also run `vm`.
+3. If the `fmt` tier fails, run `./scripts/verify.sh --fix fmt` and verify again.
+4. To assert a new feature at boot, extend the test script in `modules/verification.nix`, for example with `machine.wait_for_unit("<service>.service")`.
+5. To add a host, add a `modules/hosts/<name>.nix` file that sets `hosts.<name>`. The host gets `toplevel-*` and `vm-test-*` checks and a `vm-<host>` package with no further changes.
