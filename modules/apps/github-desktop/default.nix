@@ -10,8 +10,6 @@
         # URL to a second instance of the app whose handler only understands
         # `--cli-open`/`--cli-clone` and silently discards it — so the sign-in
         # spinner spins forever after a successful browser authorization.
-        # Appended by postFixup, signin-fix.js forwards protocol URLs arriving
-        # via `second-instance`/startup argv to the app's own `open-url` handler.
         #
         # The main process also hardcodes a 960x660 minimum window size
         # (`minWidth = 960; minHeight = 660` in the main-window class). Under a

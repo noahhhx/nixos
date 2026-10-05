@@ -4,14 +4,8 @@
     { pkgs, ... }:
     {
       programs.hyprland.enable = true;
-      # nixpkgs defaults withUWSM to false; without uwsm's systemd user units
-      # the greetd session fails with "Unit wayland-session-bindpid@... not
-      # found" and the login bounces back to the greeter. With it, the package
-      # also provides the "Hyprland (uwsm-managed)" wayland session entry the
-      # regreet greeter launches (see modules/desktop/regreet.nix).
       programs.hyprland.withUWSM = true;
 
-      # gtk portal as fallback for interfaces hyprland's portal does not implement.
       xdg.portal = {
         extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
         config.common.default = [

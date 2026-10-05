@@ -5,7 +5,6 @@
 {
   flake.modules.nixos.devenv = {
     imports = [
-      # Prebuilt index; building one from scratch takes hours.
       inputs.nix-index-database.nixosModules.nix-index
     ];
 
@@ -19,7 +18,6 @@
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       ];
 
-      # Recommended by nix-direnv: keeps direnv-cached dev shells valid across GC.
       keep-outputs = true;
       keep-derivations = true;
     };

@@ -1,27 +1,23 @@
-# Month calendar behind the waybar clock, drawn in the bar's own palette
-# (./style.css). h/l or ←/→ step a month, H/L a year, t jumps back to today,
-# q/Esc or clicking outside closes. Weeks start on Monday and carry ISO week numbers, matching
-# the clock's former `W%V` alt format.
-
 bg='#1b1b1b'
-text=$'\e[38;2;198;198;198m'     # #c6c6c6: bar text
-dim=$'\e[38;2;110;110;110m'      # #6e6e6e: inactive workspaces
-weekend=$'\e[38;2;158;158;158m'  # #9e9e9e
-bright=$'\e[1;38;2;245;245;245m' # #f5f5f5: active workspace
+text=$'\e[38;2;198;198;198m'
+dim=$'\e[38;2;110;110;110m'
+weekend=$'\e[38;2;158;158;158m'
+bright=$'\e[1;38;2;245;245;245m'
 today=$'\e[1;38;2;27;27;27;48;2;245;245;245m'
 reset=$'\e[0m'
-width=23 # 2-digit week number, then 7 days of " dd"
+week_width=2
+day_width=3
+width=$((week_width + 7 * day_width))
+a_monday=2024-01-01
 
-# Paint the whole window in the bar's background, hide the cursor, and have
-# kitty report focus changes (\e[I in, \e[O out).
-printf '\e]11;%s\e\\\e[?25l\e[?1004h' "$bg"
+string_terminator=$'\e\\'
+set_background() { printf '\e]11;%s%s' "$1" "$string_terminator"; }
+hide_cursor=$'\e[?25l'
+report_focus=$'\e[?1004h'
 
-# Losing focus closes the popup, so a click anywhere else dismisses it. With
-# the default focus-follows-mouse, merely hovering another window would do
-# the same, so focus is click-only while the popup is open (hovering from a
-# floating window to a tiled one refocuses too unless
-# float_switch_override_focus is 0). The previous values are put back on
-# exit; closing the kitty window sends HUP, the waybar toggle sends TERM.
+set_background "$bg"
+printf '%s%s' "$hide_cursor" "$report_focus"
+
 option() { hyprctl getoption "input:$1" | sed -n 's/^int: //p'; }
 follow_mouse=$(option follow_mouse || true)
 float_switch=$(option float_switch_override_focus || true)
@@ -62,13 +58,12 @@ draw() {
   lines+=('')
 
   line="$dim  "
-  for c in 1 2 3 4 5 6 7; do
-    name=$(date -d "2024-01-0$c" +%a) # 2024-01-01 was a Monday
+  for c in 0 1 2 3 4 5 6; do
+    name=$(date -d "$a_monday +$c days" +%a)
     line+=" ${name:0:2}"
   done
   lines+=("$line$reset")
 
-  # Always six week rows, so the grid keeps its height between months.
   for r in 0 1 2 3 4 5; do
     line=''
     if ((7 * r < offset + days)); then
@@ -90,7 +85,6 @@ draw() {
     lines+=("$line")
   done
 
-  # Centre the block in whatever size the window ended up.
   read -r rows cols < <(stty size </dev/tty)
   x=$(((cols - width) / 2))
   y=$(((rows - ${#lines[@]}) / 2))
@@ -109,8 +103,7 @@ this_month
 while true; do
   draw
   key='' seq=''
-  # Time out every minute so "today" follows midnight; >128 is a timeout or
-  # signal, anything else non-zero is EOF.
+  # read exits >128 on timeout or a trapped signal, and 1 on EOF.
   IFS= read -rsn1 -t 60 key || {
     (($? > 128)) && continue
     exit 0

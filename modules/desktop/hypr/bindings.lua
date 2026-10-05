@@ -27,9 +27,6 @@ bind(mainMod .. " + ALT + F", hl.dsp.window.fullscreen({ mode = "maximized" }), 
 
 bind(mainMod .. " + L", hl.dsp.exec_cmd("pidof hyprlock || hyprlock"), "Lock session")
 
--- Media keys go through swayosd (see modules/desktop/swayosd.nix): it applies
--- the change (5% steps, volume capped at 100% by its config) and pops up an OSD.
--- Brightness goes through the swayosd-brightness wrapper so the OSD keeps up while held.
 hl.bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("swayosd-client --output-volume raise"),       { locked = true, repeating = true, description = "Volume up" })
 hl.bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("swayosd-client --output-volume lower"),       { locked = true, repeating = true, description = "Volume down" })
 hl.bind("XF86AudioMute",         hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle"), { locked = true, repeating = true, description = "Mute audio" })
@@ -64,19 +61,17 @@ bind(mainMod .. " + SHIFT + RIGHT", hl.dsp.window.swap({ direction = "right" }),
 bind(mainMod .. " + SHIFT + UP",    hl.dsp.window.swap({ direction = "up" }),    "Swap window up")
 bind(mainMod .. " + SHIFT + DOWN",  hl.dsp.window.swap({ direction = "down" }),  "Swap window down")
 
--- Binds sharing a key fire in registration order (old config stacked
--- cyclenext + bringactivetotop on ALT+TAB).
 bind("ALT + TAB",         hl.dsp.window.cycle_next(), "Cycle to next window")
 bind("ALT + TAB",         hl.dsp.window.bring_to_top(), "Reveal active window on top")
 bind("ALT + SHIFT + TAB", hl.dsp.window.cycle_next({ next = false }), "Cycle to prev window")
 bind("ALT + SHIFT + TAB", hl.dsp.window.bring_to_top(), "Reveal active window on top")
 
--- Resize active window (code:20 = minus key, code:21 = equal key)
--- code:20 / code:21 are the minus and equal keys.
-bind(mainMod .. " + code:20",         hl.dsp.window.resize({ x = -100, y = 0,   relative = true }), "Expand window left")
-bind(mainMod .. " + code:21",         hl.dsp.window.resize({ x = 100,  y = 0,   relative = true }), "Shrink window left")
-bind(mainMod .. " + SHIFT + code:20", hl.dsp.window.resize({ x = 0,    y = -100, relative = true }), "Shrink window up")
-bind(mainMod .. " + SHIFT + code:21", hl.dsp.window.resize({ x = 0,    y = 100,  relative = true }), "Expand window down")
+local minusKey = "code:20"
+local equalKey = "code:21"
+bind(mainMod .. " + " .. minusKey,         hl.dsp.window.resize({ x = -100, y = 0,   relative = true }), "Expand window left")
+bind(mainMod .. " + " .. equalKey,         hl.dsp.window.resize({ x = 100,  y = 0,   relative = true }), "Shrink window left")
+bind(mainMod .. " + SHIFT + " .. minusKey, hl.dsp.window.resize({ x = 0,    y = -100, relative = true }), "Shrink window up")
+bind(mainMod .. " + SHIFT + " .. equalKey, hl.dsp.window.resize({ x = 0,    y = 100,  relative = true }), "Expand window down")
 
 bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }), "Scroll active workspace forward")
 bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }), "Scroll active workspace backward")

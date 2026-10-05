@@ -1,8 +1,3 @@
-# pi: the CLI itself is vendored here (pinned to this repo's nixpkgs
-# channel, newer than the channel ships); the agent setup — the portable
-# AGENTS.md base, skills, extensions incl. pi-fff — comes from the
-# pi-shop flake input; machine-specific instructions (machine.md) and
-# skills (./skills) stay in this directory.
 { inputs, ... }:
 {
   flake.modules.homeManager.pi =
@@ -17,7 +12,6 @@
           makeBinaryWrapper,
           ripgrep,
           fd,
-          stdenvNoCC,
           writableTmpDirAsHomeHook,
           versionCheckHook,
         }:
@@ -103,12 +97,6 @@
             find "$nm" -type l -lname '*/packages/*' -delete
 
             find "$nm/.bin" -xtype l -delete
-          ''
-          + lib.optionalString stdenvNoCC.hostPlatform.isDarwin ''
-            # Otherwise audit-tmpdir tries to inspect these ELF RPATHs with patchelf
-            rm -rf \
-              "$nm/@anthropic-ai/sandbox-runtime/dist/vendor/seccomp" \
-              "$nm/@anthropic-ai/sandbox-runtime/vendor/seccomp"
           '';
 
           postFixup = ''
@@ -152,9 +140,6 @@
 
       home.packages = [ pi ];
 
-      # Machine-specific skills: each directory under ./skills becomes a
-      # global skill (pi discovers <dir>/SKILL.md recursively). Portable
-      # skills and extensions come from the pi-shop aspect.
       home.file = lib.mapAttrs' (
         name: _: lib.nameValuePair ".pi/agent/skills/${name}" { source = ./skills + "/${name}"; }
       ) (lib.filterAttrs (_: type: type == "directory") (builtins.readDir ./skills));

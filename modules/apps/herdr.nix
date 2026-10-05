@@ -1,13 +1,3 @@
-# The "herdr" aspect: the agent-aware terminal multiplexer (herdr.dev).
-#
-# The UI follows the host terminal's ANSI palette (kitty's), and agents
-# that finish or need input in a background tab raise a desktop
-# notification through mako. herdr's "system" delivery shells out to
-# notify-send and silently drops the notification when it isn't on PATH,
-# so libnotify ships alongside it.
-#
-# The config is a read-only store symlink, so onboarding is skipped (it
-# would try to write `onboarding = false` back); edit settings here.
 { inputs, ... }:
 {
   flake.modules.homeManager.herdr =

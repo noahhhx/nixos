@@ -1,6 +1,3 @@
-# The home-manager waybar module writes its own config/style files only when
-# `settings`/`style` are set; both stay empty so the files below are the ones
-# loaded.
 { ... }:
 {
   flake.modules.homeManager.waybar =
@@ -18,8 +15,6 @@
         });
       };
 
-      # The clock's click popup (config.jsonc); a floating kitty window placed
-      # under the bar by the waybar-calendar rule in ../hypr/windows.lua.
       home.packages = [
         (pkgs.writeShellApplication {
           name = "waybar-calendar";

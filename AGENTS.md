@@ -98,7 +98,7 @@ Tiers are cumulative: `eval` catches evaluation errors, `build` catches build fa
 When `nix` is not on PATH, the runner creates a persistent privileged container (`nix-verify-<repo>`, image `nixos/nix`, override with `VERIFY_IMAGE`), mounts the repo at `/work`, and executes the tiers inside it with `docker exec`. The container — and its nix store — is reused across runs, so only the first run is slow. Details:
 
 - `/dev/kvm` is passed through when available. Without it, VM tests fall back to slow software emulation (TCG) — they still pass, just slower.
-- The image has no `git`, but the flake source is a git checkout, so `git` is provided via `nix shell <nixpkgs>#git` (cached in the container after first use).
+- The image ships `git`, which nix needs because the flake source is a git checkout.
 - The container sets `system-features = kvm nixos-test big-parallel` so NixOS test derivations can be built.
 
 ### Where it lives

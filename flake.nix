@@ -18,27 +18,21 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware";
 
-    # pi agent setup: the global AGENTS.md base, skills, and extensions
-    # (incl. pi-fff packaging).
     pi-shop = {
       url = "github:noahhhx/pi-shop";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nixpkgs only ships wlrctl, a different tool.
     wlctl = {
       url = "github:aashish-thapa/wlctl";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # agent-aware terminal multiplexer; not in nixpkgs.
     herdr = {
       url = "github:herdrdev/herdr";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # walker 2.x needs the elephant provider daemon; nixpkgs' elephant ships
-    # without providers.
     elephant = {
       url = "github:abenz1267/elephant";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -50,7 +44,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Canon EOS camera as a webcam over v4l2loopback; not in nixpkgs.
     eoscam = {
       url = "github:noahhhx/eoscam";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -66,8 +59,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # zsh and oh-my-posh are wrapped via this library so their rc files and
-    # prompt config ship inside the derivation.
     wrappers = {
       url = "github:nix-community/nix-wrapper-modules";
       inputs.nixpkgs.follows = "nixpkgs";

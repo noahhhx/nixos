@@ -1,20 +1,4 @@
 #!/usr/bin/env bash
-#
-# Adopt a freshly installed machine into this repo, for one host.
-#
-# Usage (as a normal user, from the repo root, on the machine you just
-# installed — see the "Fresh install" section of README.md):
-#   ./scripts/install.sh <host>          # e.g. ./scripts/install.sh framework
-#
-# Requires: nix, sudo, and git (on a bare install: nix-shell -p git).
-# Flakes are enabled per-invocation via NIX_CONFIG, so the fresh
-# install needs no configuration changes.
-#
-# What it does:
-#   1. copies /etc/nixos/hardware-configuration.nix verbatim to
-#      modules/hosts/_facts/<host>.nix, replacing the placeholder
-#   2. formats it (nixfmt-rfc-style) and commits it
-#   3. switches the machine to the flake output #<host>
 set -euo pipefail
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -37,8 +21,6 @@ $NIX_CONFIG}"
 
 say "capturing install facts for host '$host'"
 cp "$hw" "$facts"
-# nix evaluates only git-tracked files, so stage before formatting.
-git add "$facts"
 nix fmt -- "$facts"
 git add "$facts"
 git commit -m "hosts/${host}: capture install facts from hardware-configuration.nix"

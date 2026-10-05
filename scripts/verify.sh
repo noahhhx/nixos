@@ -25,7 +25,6 @@
 # Environment overrides:
 #   VERIFY_IMAGE      docker image to use            (default: nixos/nix)
 #   VERIFY_CONTAINER  container name                 (default: nix-verify-<repo>)
-#   VERIFY_GIT_REF    nixpkgs ref used to provide git in the container
 #
 set -euo pipefail
 
@@ -35,9 +34,6 @@ cd "$REPO_ROOT"
 IMAGE="${VERIFY_IMAGE:-nixos/nix}"
 REPO_NAME="$(basename "$REPO_ROOT" | tr -cd 'A-Za-z0-9-')"
 CONTAINER="${VERIFY_CONTAINER:-nix-verify-${REPO_NAME:-repo}}"
-# The nixos/nix image has no git, but the flake source is a git checkout;
-# git is provided via nix shell (cached in the container after first use).
-GIT_REF="${VERIFY_GIT_REF:-github:NixOS/nixpkgs/nixos-26.05}"
 
 say() { printf '\033[1m[verify]\033[0m %s\n' "$*"; }
 pass() { printf '\033[1;32m[verify]\033[0m %s\n' "$*"; }
@@ -45,7 +41,7 @@ warn() { printf '\033[1;33m[verify]\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31m[verify]\033[0m %s\n' "$*" >&2; exit 1; }
 banner() { printf '\n\033[1;35m==> tier: %s\033[0m\n' "$*"; }
 
-usage() { sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '2,/^set /{/^#/p}' "$0" | sed 's/^# \{0,1\}//'; }
 
 clean_docker() {
   if docker rm -f "$CONTAINER" >/dev/null 2>&1; then
@@ -98,20 +94,17 @@ ensure_container() {
     -e NIX_CONFIG=$'experimental-features = nix-command flakes\nsystem-features = kvm nixos-test big-parallel'
     -v "$REPO_ROOT:/work"
   )
-  # Give the container KVM when the host has it; otherwise VM tests fall
-  # back to slow software emulation (TCG) but still run.
   [ -e /dev/kvm ] && args+=(--device /dev/kvm)
   docker run "${args[@]}" "$IMAGE" sleep infinity >/dev/null
   # The repo is mounted from the host and owned by a different uid than the
   # container's root, so git (and nix's libgit2) need this exemption.
-  docker exec "$CONTAINER" nix shell "$GIT_REF#git" -c \
-    git config --global --add safe.directory /work >/dev/null
+  docker exec "$CONTAINER" git config --global --add safe.directory /work >/dev/null
 }
 
 run() {
   if (( DOCKER )); then
     ensure_container
-    docker exec -w /work "$CONTAINER" nix shell "$GIT_REF#git" -c "$@"
+    docker exec -w /work "$CONTAINER" "$@"
   else
     "$@"
   fi
@@ -125,7 +118,6 @@ ensure_lock() {
   fi
 }
 
-# Nix sees only git-tracked files; fail early if new .nix files are invisible.
 check_untracked() {
   run git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
     warn "not a git work tree — nix may not see all files"
@@ -207,11 +199,6 @@ tier_vm() {
       if (( DOCKER )); then
         run nix build --no-link --print-out-paths ".#checks.$s.vm-test-$h"
       else
-        # NixOS tests declare requiredSystemFeatures = [ "kvm" ]; make sure
-        # this machine is allowed to build them (TCG fallback if no /dev/kvm).
-        # Append to any inherited NIX_CONFIG (e.g. experimental-features set
-        # by the caller) instead of clobbering it — NIX_CONFIG is
-        # newline-separated.
         NIX_CONFIG="${NIX_CONFIG:+${NIX_CONFIG}
 }system-features = kvm nixos-test big-parallel" \
           nix build --no-link --print-out-paths ".#checks.$s.vm-test-$h"

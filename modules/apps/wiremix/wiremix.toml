@@ -1,28 +1,13 @@
-# wiremix config, merged over the built-in defaults. The full reference
-# (every option, keybinding, theme property and glyph) is upstream:
-# https://github.com/tsowell/wiremix/blob/main/wiremix.toml
-#
-# Keys: Tab/Shift+Tab switch tabs, j/k select, d makes the selected
-# device the default, h/l or 0-9 set volume, m mutes, ? shows help.
-
-# Open straight onto the device picker; the waybar icon is for switching.
 tab = "output"
 
-# Match swayosd: volume is capped at 100%.
 max_volume_percent = 100.0
 enforce_max_volume = true
 
-# Only meter what is on screen; the peak monitors are otherwise running
-# for every node while the window is open.
 lazy_capture = true
 
 theme = "catppuccin"
 char_set = "flat"
 
-# The same flat TUI look as kitty, hyprlock and swayosd: Catppuccin Mocha
-# accents on kitty's #0f0f0f base (backgrounds and body text are left to
-# the terminal), the purple accent from kitty's active tab and the
-# swayosd bar, and the rose accent from the kitty cursor.
 [themes.catppuccin]
 default_device = { fg = "#f5e0dc" }
 default_stream = { fg = "#f5e0dc" }
@@ -52,8 +37,6 @@ help_border = { fg = "#585b70" }
 help_item = { fg = "#cdd6f4" }
 help_more = { fg = "#585b70" }
 
-# Square borders instead of the default rounded ones, a solid bar for the
-# selection, and a Nerd Font glyph marking the default device.
 [char_sets.flat]
 default_device = "󰓃"
 default_stream = "󰓃"

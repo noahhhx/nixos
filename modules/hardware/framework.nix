@@ -21,7 +21,6 @@
       powerOnBoot = true;
     };
 
-    # Overrides nixos-hardware's mkDefault true.
     services.fprintd.enable = false;
 
     services.fwupd.enable = true;

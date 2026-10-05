@@ -1,13 +1,8 @@
-# swayosd-brightness raise|lower: step the backlight 5% and show swayosd's OSD.
-#
 # `swayosd-client --brightness` makes swayosd-server fork brightnessctl four
 # times per press on its GTK main thread (~25-40ms), which at Hyprland's 40Hz
 # key repeat keeps the main loop busy so the OSD never redraws while a
 # brightness key is held. Doing the change here, outside the server, leaves it
 # only a cheap custom-progress redraw, like the in-process volume path.
-#
-# Same arithmetic as swayosd's brightnessctl backend: a rounded 5%-of-max
-# step, clamped to [5%, 100%] so the panel never goes fully dark.
 
 IFS=, read -r _ _ cur _ max < <(brightnessctl --machine-readable)
 step=$(((max * 5 + 50) / 100))

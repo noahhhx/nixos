@@ -37,8 +37,9 @@ in
         // (lib.mapAttrs' (
           name: host:
           lib.nameValuePair "vm-test-${name}" (
-            pkgs.testers.nixosTest {
+            pkgs.testers.runNixOSTest {
               name = "boot-${name}";
+              node.pkgsReadOnly = false;
               nodes.machine = {
                 imports = [ host ];
               };
@@ -67,11 +68,6 @@ in
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/kitty")
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/pi")
 
-                  # Login shells are stored as /run/current-system/sw/bin/zsh
-                  # (lib.toShellPath) and terminals exec that path (kitty even
-                  # prefers $SHELL, which greetd fills from passwd), so it must
-                  # be the wrapped zsh, or shells start with no ZDOTDIR and
-                  # zsh-newuser-install greets every new terminal.
                   machine.succeed(
                     "grep -aq zsh-dot-dir /run/current-system/sw/bin/zsh"
                   )
@@ -99,10 +95,6 @@ in
                   machine.succeed(
                     "test -f /run/current-system/sw/share/systemd/user/wayland-session-bindpid@.service"
                   )
-                  # regreet aspect: greetd runs the regreet greeter inside cage,
-                  # and the session regreet launches is hyprland's uwsm-managed
-                  # desktop entry, whose Exec carries the same uwsm start
-                  # command that tuigreet's --cmd used to spell out directly.
                   machine.succeed(
                     "systemctl cat greetd.service | grep -oP '(?<=--config )\S+'"
                     + " | head -1 | xargs grep -q cage"
@@ -114,18 +106,13 @@ in
                     + "/run/current-system/sw/share/wayland-sessions/hyprland-uwsm.desktop"
                   )
 
-                  # These only run once a Wayland session exists, which the
-                  # VM test does not start, so assert on the units instead.
                   machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hypridle.service")
                   machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpaper.service")
                   machine.succeed("test -f /home/${primaryUser}/.config/hypr/hyprlock.conf")
                   machine.succeed("test -f /etc/pam.d/hyprlock")
 
-                  # mako is D-Bus-activated on the first notification of a real session.
                   machine.succeed("test -f /home/${primaryUser}/.config/mako/config")
 
-                  # swayosd aspect: the OSD server ships as a session user service
-                  # and the media-key bindings call its client.
                   machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/swayosd.service")
                   machine.succeed("grep -q show_percentage /home/${primaryUser}/.config/swayosd/config.toml")
                   machine.succeed("test -f /home/${primaryUser}/.config/swayosd/style.css")
@@ -136,14 +123,11 @@ in
 
                   machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/hyprpolkitagent.service")
 
-                  # The hyprland portal's daemon lives in libexec, not on PATH.
                   machine.succeed("test -f /run/current-system/sw/share/xdg-desktop-portal/portals/hyprland.portal")
                   machine.succeed("grep -q hyprland /etc/xdg/xdg-desktop-portal/portals.conf")
                   machine.succeed("grep -q gtk /etc/xdg/xdg-desktop-portal/portals.conf")
                   machine.succeed("test -x /run/current-system/sw/bin/brightnessctl")
 
-                  # theme aspect: a dark GTK theme is configured so the portal's
-                  # Settings interface reports prefer-dark instead of no-preference.
                   machine.succeed(
                     "grep -q adw-gtk3-dark /home/${primaryUser}/.config/gtk-3.0/settings.ini"
                   )
@@ -163,7 +147,6 @@ in
                   machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/nvim")
 
                   machine.succeed("grep -q zeditor /etc/set-environment")
-                  # zed aspect: the `zeditor` binary is aliased as `zed` for shells.
                   machine.succeed("zsh -ic 'alias zed' | grep -q zeditor")
 
                   machine.wait_for_unit("nix-gc.timer")
@@ -177,15 +160,11 @@ in
                     "test -f /run/current-system/sw/share/systemd/user/gvfs-daemon.service"
                   )
 
-                  # keyring aspect: a D-Bus secrets provider (libsecret clients like
-                  # GitHub Desktop's keytar persist credentials through it) and
-                  # pam_gnome_keyring in greetd's stack to unlock it at login.
                   machine.succeed(
                     "test -f /run/current-system/sw/share/dbus-1/services/org.freedesktop.secrets.service"
                   )
                   machine.succeed("grep -q gnome_keyring /etc/pam.d/greetd")
 
-                  # D-Bus-activated; assert the unit is installed rather than started.
                   ${
                     if hasPPD then
                       ''
@@ -201,8 +180,6 @@ in
                     if hasTailscale then
                       ''
                         machine.wait_for_unit("tailscaled.service")
-                        # tailscaled-set makes the user the operator so
-                        # trayscale can drive tailscaled.
                         machine.wait_until_succeeds(
                           "tailscale debug prefs | grep -q '\"OperatorUser\": \"${primaryUser}\"'"
                         )
@@ -224,8 +201,6 @@ in
                   ${
                     if hasEoscam then
                       ''
-                        # The loopback webcam exists from boot, camera or not;
-                        # the daemon itself only runs in a user session.
                         machine.succeed("grep -qx 'EOS Webcam' /sys/devices/virtual/video4linux/video*/name")
                         machine.succeed("test -f /etc/systemd/user/eoscam.service")
                       ''
@@ -245,9 +220,6 @@ in
                       ""
                   }
 
-                  # A full S3/S4 cycle is not faithful under QEMU (the test plumbing
-                  # replaces the real swap/LUKS layout); resume is verified on the
-                  # metal host.
                   machine.succeed("grep -q mem /sys/power/state")
                   machine.succeed("grep -q disk /sys/power/state")
                   machine.succeed(

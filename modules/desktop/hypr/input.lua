@@ -9,12 +9,11 @@ hl.config({
         touchpad = {
             natural_scroll       = true,
             scroll_factor        = 0.4,
-            clickfinger_behavior = false, -- button areas: bottom-right corner = right click
+            clickfinger_behavior = false,
         },
     },
 })
 
--- Logitech mice: no acceleration.
 for _, name in ipairs({
     "logitech-usb-receiver",
     "logitech-pro-x-wireless-1",

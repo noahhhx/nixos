@@ -1,8 +1,3 @@
-/* SwayOSD popup: the same flat TUI look as kitty and hyprlock — no
-   rounding, a thin 1px border, the #0f0f0f dark base, Catppuccin Mocha
-   accents and JetBrainsMono Nerd Font. The server auto-loads this from
-   ~/.config/swayosd/style.css. */
-
 window#osd {
   border-radius: 0;
   border: 1px solid alpha(#ffffff, 0.33);
@@ -14,12 +9,10 @@ window#osd #container {
 }
 
 window#osd image {
-  /* the rose accent, like the kitty cursor and hyprlock's clock */
   color: #f5e0dc;
 }
 
 window#osd label {
-  /* Catppuccin Mocha text */
   color: #cdd6f4;
   font-family: "JetBrainsMono Nerd Font";
   font-size: 13px;
@@ -43,7 +36,6 @@ window#osd segment {
   min-height: inherit;
   border-radius: inherit;
   border: none;
-  /* Catppuccin Mocha surface1, kitty's color0 */
   background: #45475a;
 }
 
@@ -52,7 +44,6 @@ window#osd segment.active {
   min-height: inherit;
   border-radius: inherit;
   border: none;
-  /* the purple from kitty's active tab and hyprlock's check state */
   background: #cba6f7;
 }
 
