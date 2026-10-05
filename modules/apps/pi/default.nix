@@ -23,23 +23,23 @@
         }:
         buildNpmPackage (finalAttrs: {
           pname = "pi-coding-agent";
-          version = "0.86.1";
+          version = "0.99.2";
 
           src = fetchFromGitHub {
             owner = "earendil-works";
             repo = "pi";
             tag = "v${finalAttrs.version}";
-            hash = "sha256-/7+VoRfXdeOwtiNXQYOKg5OHeKuNLIHfODGDNBhWop0=";
+            hash = "sha256-ukN//DNSnCr9gZHKSzexAGEZu95eMzTGJLjLc5B+Hwo=";
           };
 
-          npmDepsHash = "sha256-VxjYw4lN/w0sDboihHAKEhdJFzJa09qZo7vavkTkBuw=";
+          npmDepsHash = "sha256-eKghIpCAKawZm0Uf2iG6y1fz21Z5jNnMiAFJ5Quj3GI=";
 
           # Upstream generates the provider model catalog with a network fetch
           # and gitignores it, so it is absent from the tarball; restore it from
           # the matching published @earendil-works/pi-ai package.
           modelData = fetchurl {
             url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${finalAttrs.version}.tgz";
-            hash = "sha256-88Nb88YGsJ9iupLSx8ieY+DKGAdUcBAtVWVoTFJLfv0=";
+            hash = "sha256-Cz34eRtIghbzCdkIeJKUp0S7Ybuq0SPZQJjlbflTjSU=";
           };
 
           preConfigure = ''
@@ -56,20 +56,22 @@
 
           nativeBuildInputs = [ makeBinaryWrapper ];
 
-          # tsgo directly instead of `npm run build` for workspace deps: pi-ai's
+          # tsc directly instead of `npm run build` for workspace deps: pi-ai's
           # generate-models script needs network access; the catalog comes from
           # modelData above.
           buildPhase = ''
             runHook preBuild
 
-            npx tsgo -p packages/chord/tsconfig.build.json
-            npx tsgo -p packages/tui/tsconfig.build.json
-            npx tsgo -p packages/telemetry/tsconfig.build.json
-            npx tsgo -p packages/ai/tsconfig.build.json
-            npx tsgo -p packages/agent/tsconfig.build.json
-            npx tsgo -p packages/protocol/tsconfig.build.json
-            npx tsgo -p packages/client/tsconfig.build.json
-            npx tsgo -p packages/server/tsconfig.build.json
+            npx tsc -p packages/chord/tsconfig.build.json
+            npx tsc -p packages/tui/tsconfig.build.json
+            npx tsc -p packages/telemetry/tsconfig.build.json
+            npx tsc -p packages/codemode/tsconfig.build.json
+            npx tsc -p packages/mcp/tsconfig.build.json
+            npx tsc -p packages/ai/tsconfig.build.json
+            npx tsc -p packages/agent/tsconfig.build.json
+            npx tsc -p packages/protocol/tsconfig.build.json
+            npx tsc -p packages/client/tsconfig.build.json
+            npx tsc -p packages/server/tsconfig.build.json
             npm run build --workspace=packages/coding-agent
 
             runHook postBuild
@@ -88,6 +90,8 @@
                       @earendil-works/pi-ai:packages/ai \
                       @earendil-works/pi-agent-core:packages/agent \
                       @earendil-works/pi-client:packages/client \
+                      @earendil-works/pi-codemode:packages/codemode \
+                      @earendil-works/pi-mcp:packages/mcp \
                       @earendil-works/pi-protocol:packages/protocol \
                       @earendil-works/pi-telemetry:packages/telemetry \
                       @earendil-works/pi-tui:packages/tui; do
