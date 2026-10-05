@@ -57,6 +57,7 @@ in
       lazydocker
       lazygit
       herdr
+      vesktop
     ];
   };
 }
