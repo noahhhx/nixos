@@ -117,7 +117,7 @@
     "on-click": "kitty --single-instance --listen-on unix:@kitty --class bluetui bluetui"
   },
   "pulseaudio": {
-    "format": "{icon}",
+    "format": "{volume}% {icon}",
     "on-click": "kitty --single-instance --listen-on unix:@kitty --class wiremix wiremix",
     "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "tooltip-format": "Playing at {volume}%",
