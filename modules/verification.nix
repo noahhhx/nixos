@@ -199,9 +199,14 @@ in
                   ${
                     if hasTailscale then
                       ''
-                        machine.fail("systemctl is-active tailscaled.service")
-                        machine.succeed("systemctl start tailscaled.service")
                         machine.wait_for_unit("tailscaled.service")
+                        # tailscaled-set makes the user the operator so
+                        # trayscale can drive tailscaled.
+                        machine.wait_until_succeeds(
+                          "tailscale debug prefs | grep -q '\"OperatorUser\": \"${primaryUser}\"'"
+                        )
+                        machine.succeed("test -f /home/${primaryUser}/.config/systemd/user/trayscale.service")
+                        machine.succeed("test -x /etc/profiles/per-user/${primaryUser}/bin/trayscale")
                       ''
                     else
                       ""

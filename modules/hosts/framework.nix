@@ -17,7 +17,10 @@ in
 
     home-manager.users.noah = {
       home.stateVersion = "26.05";
-      imports = [ homeManager.desktop ];
+      imports = [
+        homeManager.desktop
+        homeManager.tailscale
+      ];
     };
 
     networking.hostName = "framework";
