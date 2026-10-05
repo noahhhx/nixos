@@ -50,6 +50,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Canon EOS camera as a webcam over v4l2loopback; not in nixpkgs.
+    eoscam = {
+      url = "github:noahhhx/eoscam";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -53,6 +53,7 @@ in
                   hasTailscale = hostConfig.services.tailscale.enable;
                   hasMullvad = hostConfig.services.mullvad-vpn.enable;
                   hasDocker = hostConfig.virtualisation.docker.enable;
+                  hasEoscam = hostConfig.services.eoscam.enable or false;
                   hasPPD = hostConfig.services.power-profiles-daemon.enable;
                 in
                 ''
@@ -215,6 +216,18 @@ in
                     if hasMullvad then
                       ''
                         machine.wait_for_unit("mullvad-daemon.service")
+                      ''
+                    else
+                      ""
+                  }
+
+                  ${
+                    if hasEoscam then
+                      ''
+                        # The loopback webcam exists from boot, camera or not;
+                        # the daemon itself only runs in a user session.
+                        machine.succeed("grep -qx 'EOS Webcam' /sys/devices/virtual/video4linux/video*/name")
+                        machine.succeed("test -f /etc/systemd/user/eoscam.service")
                       ''
                     else
                       ""

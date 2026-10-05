@@ -12,6 +12,7 @@ in
       nixos.mullvad
       nixos.docker
       nixos.secrets
+      nixos.eoscam
       ./_facts/framework.nix
     ];
 
