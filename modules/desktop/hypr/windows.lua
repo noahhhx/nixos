@@ -35,11 +35,14 @@ hl.window_rule({
 })
 
 local waybarHeight, gapsOut = 26, 10
+local calendarW, calendarH = 240, 200
 hl.window_rule({
     name  = "waybar-calendar",
     match = { class = "^waybar-calendar$" },
 
     float = true,
-    size  = "240 200",
-    move  = "monitor_w*0.5-window_w*0.5 " .. waybarHeight + gapsOut,
+    size  = calendarW .. " " .. calendarH,
+    -- window_w here is kitty's remembered size from its last closed window,
+    -- not the size above, so center on the known width instead.
+    move  = "monitor_w*0.5-" .. calendarW / 2 .. " " .. waybarHeight + gapsOut,
 })
