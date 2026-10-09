@@ -20,6 +20,9 @@
 
       keep-outputs = true;
       keep-derivations = true;
+
+      # devenv passes the restricted `system` option to nix commands
+      trusted-users = [ "noah" ];
     };
 
     programs.nix-ld.enable = true;
