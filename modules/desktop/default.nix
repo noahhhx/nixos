@@ -32,6 +32,7 @@ in
       hyprpolkitagent
       hyprshot
       mako
+      powr
       swayosd
       walker
       waybar

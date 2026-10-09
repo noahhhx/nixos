@@ -243,6 +243,26 @@
         "type": "github"
       }
     },
+    "powr": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791528757,
+        "narHash": "sha256-RfavS2ngI+f/MxuVUX4p5kQmu9JuTcnyJJ0mXYlUVWY=",
+        "owner": "noahhhx",
+        "repo": "powr",
+        "rev": "0ca3392edb75168352f9db395cf86e3e36ee9679",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noahhhx",
+        "repo": "powr",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "elephant": "elephant",
@@ -255,6 +275,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",
         "pi-shop": "pi-shop",
+        "powr": "powr",
         "sops-nix": "sops-nix",
         "walker": "walker",
         "wlctl": "wlctl",

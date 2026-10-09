@@ -26,6 +26,7 @@ bind(mainMod .. " + CTRL + F", hl.dsp.window.fullscreen_state({ internal = 0, cl
 bind(mainMod .. " + ALT + F", hl.dsp.window.fullscreen({ mode = "maximized" }), "Full width")
 
 bind(mainMod .. " + L", hl.dsp.exec_cmd("pidof hyprlock || hyprlock"), "Lock session")
+bind(mainMod .. " + ESCAPE", hl.dsp.exec_cmd("pkill -x powr || powr"), "Power menu")
 
 hl.bind("XF86AudioRaiseVolume",  hl.dsp.exec_cmd("swayosd-client --output-volume raise"),       { locked = true, repeating = true, description = "Volume up" })
 hl.bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("swayosd-client --output-volume lower"),       { locked = true, repeating = true, description = "Volume down" })

@@ -34,6 +34,14 @@ hl.window_rule({
     center = true,
 })
 
+hl.window_rule({
+    name  = "powr-float",
+    match = { class = "^powr$" },
+
+    float  = true,
+    center = true,
+})
+
 local waybarHeight, gapsOut = 26, 10
 local calendarW, calendarH = 240, 200
 hl.window_rule({
