@@ -1,18 +1,8 @@
 { ... }:
 let
-  font = "JetBrainsMono Nerd Font";
   prefs = {
     "ui.systemUsesDarkTheme" = true;
     "browser.theme.content-theme" = 0;
-
-    # 0 ignores the fonts pages ask for, so every site renders in `font`.
-    "browser.display.use_document_fonts" = 0;
-    "font.name.serif.x-western" = font;
-    "font.name.sans-serif.x-western" = font;
-    "font.name.monospace.x-western" = font;
-    "font.name.serif.x-unicode" = font;
-    "font.name.sans-serif.x-unicode" = font;
-    "font.name.monospace.x-unicode" = font;
   };
 in
 {
