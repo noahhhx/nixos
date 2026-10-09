@@ -25,6 +25,13 @@
 
     services.fwupd.enable = true;
 
+    services.udev.extraRules = ''
+      # The Logitech USB receiver in the EPOMAKER keyboard's USB passthrough
+      # port wakes the laptop seconds after every suspend. It is not allowed to
+      # wake the machine.
+      ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c547", ATTR{power/wakeup}="disabled"
+    '';
+
     zramSwap = {
       enable = true;
       algorithm = "zstd";
