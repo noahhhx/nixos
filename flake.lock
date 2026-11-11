@@ -231,11 +231,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794414093,
-        "narHash": "sha256-DrLU1Wv9M/tniybYvnQFZtLZgRkUt706hYlCRdyU8UE=",
+        "lastModified": 1794415343,
+        "narHash": "sha256-EsQKW7Gi6WA63XWe6Qtglc5+dUVgzgNhrq36e+eVU8E=",
         "owner": "noahhhx",
         "repo": "pi-shop",
-        "rev": "094782d6db00d73a259018949de18e8f3016304b",
+        "rev": "b6db1ecad2aa68c999e6db3ff821447e5a810544",
         "type": "github"
       },
       "original": {
