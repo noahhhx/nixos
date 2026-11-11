@@ -9,6 +9,7 @@ in
       dolphin
       editors
       fonts
+      herdr
       home-manager
       hyprland
       hyprlock

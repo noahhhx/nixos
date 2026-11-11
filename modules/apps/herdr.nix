@@ -95,6 +95,12 @@ let
     };
 in
 {
+  # The core enables linger itself (loginctl enable-linger) on first start, so
+  # terminals outlive a logout; declare it instead of leaving it imperative.
+  flake.modules.nixos.herdr = {
+    users.users.noah.linger = true;
+  };
+
   flake.modules.homeManager.herdr =
     { pkgs, ... }:
     let
