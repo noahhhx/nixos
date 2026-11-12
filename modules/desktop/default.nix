@@ -41,6 +41,7 @@ in
       theme
       cursor
       git
+      gh
       zed
       intellij
       pi
